@@ -1,54 +1,55 @@
 <!DOCTYPE html>
 <html>
+	<head>
+		<meta charset="utf-8"/>
+		<link rel="stylesheet" href="bulma.min.css">
+		<script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"> </script>
+	</head>
+	<body>
+		<section class="section">
+			<div class="maincolumns columns is-desktop is-vcentered">
+				<div class="column is-10 is-offset-1 notification is-info is-light box container">
+					<div class="title">
+						Users
+					</div>
+					<% if (locals.allUsers) { %>
+						<div class="table-container">
+						<table class="table is-bordered is-hoverable is-striped is-narrow">
+                        <thead>
+							<tr>
+								<th> First Name </th>
+								<th> Last Name </th>
+								<th> Email </th>
+								<th> &nbsp; </th>
+								<th> &nbsp; </th>
+								<th> &nbsp; </th>
+							</tr>
+							</thead>
+							<% let i=0; %>
+							<% for(i=0; i < allUsers.length; i++) { %>
+							<tr>
+								<td><%= allUsers[i].first_name %></td>
+								<td><%= allUsers[i].last_name %></td>
+								<td><%= allUsers[i].email %></td>
+								<td><a href="/showUsers?id=<%= allUsers[i].user_id %>">
+									<span class="icon is-small">
+										<i class="fas fa-user"></i>
+									</span></a>
+								</td>
+							</tr>
+							<% } %>
+							<tfoot>
+								<tr> <td colspan="5">
+								There are <%= i %> users.
+								</td> </tr>
+							</tfoot>
+						</table>
+						</div>
+					<% } %>
 
-<head>
-  <meta charset="utf-8" />
-  <link rel="stylesheet" href="bulma.min.css" />
-  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
-</head>
-
-<body>
-  <section class="section">
-    <div class="maincolumns columns is-desktop is-vcentered">
-      <div class="column is-4 is-offset-4 notification is-info is-light box container">
-        <!-- Logging in with creds -->
-        <form action='/loggingin' method='post'>
-          <div class="field">
-            <p class="control has-icons-left has-icons-right">
-              <input class="input" name="email" type="email" placeholder="Email" />
-              <span class="icon is-small is-left">
-                <i class="fas fa-envelope"></i>
-              </span>
-              <span class="icon is-small is-right">
-                <i class="fas fa-check"></i>
-              </span>
-            </p>
-          </div>
-          <div class="field">
-            <p class="control has-icons-left">
-              <input class="input" name='password' type="password" placeholder="Password" />
-              <span class="icon is-small is-left">
-                <i class="fas fa-lock"></i>
-              </span>
-            </p>
-          </div>
-          <div class="field">
-            <p class="control">
-              <button class="button is-success">Login</button>
-            </p>
-          </div>
-          </form>
-          <!-- Sign up Page -->
-          <form action='/createUser' method='get'>
-            <div class="field">
-              <p class="control">
-                <button class="button is-link">Sign up</button>
-              </p>
-            </div>
-          </form>
-      </div>
-    </div>
-  </section>
-</body>
-
+					
+				</div>
+			</div>
+		</section>
+	</body>
 </html>
