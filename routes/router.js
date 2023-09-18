@@ -67,7 +67,29 @@ router.use(session({
 
 //* User is brought to index page to login or sign up */
 router.get('/', async (req, res) => {
-    res.render('images');
+console.log("index page hit");
+	try {
+		const users = await userCollection.find().project({first_name: 1, last_name: 1, email: 1, _id: 1}).toArray();
+
+		if (users === null) {
+			res.render('error', {message: 'Error connecting to MongoDB'});
+			console.log("Error connecting to user collection");
+		}
+		else {
+			users.map((item) => {
+				item.user_id = item._id;
+				return item;
+			});
+			console.log(users);
+
+			res.render('index', {allUsers: users});
+		}
+	}
+	catch(ex) {
+		res.render('error', {message: 'Error connecting to MySQL'});
+		console.log("Error connecting to MySQL");
+		console.log(ex);
+	}
 });
 //* Successful or unsuccessful login*/
 router.post('/loggingin', (req,res) => {
