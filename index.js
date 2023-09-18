@@ -1,5 +1,5 @@
-//Define the include global function for absolute file name, 
-//removing the use of parent directories. 
+//Define the include global function for absolute file name,
+//removing the use of parent directories.
 //when using include() vs require to help with module imports.
 global.base_dir = __dirname;
 global.abs_path = function(path) {
@@ -25,5 +25,5 @@ app.use('/',router);
 
 app.listen(port, () => {
 	console.log("Node application listening on port: "+ port);
-}); 
+});
 
