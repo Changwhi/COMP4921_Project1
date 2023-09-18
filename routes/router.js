@@ -18,7 +18,8 @@ var mongoStore = MongoStore.create({
         secret: mongodb_session_secret
     }
 });
-app.use(session({
+
+router.use(session({
     secret:node_session_secret,
     store: mongoStore, 
     saveUninitialized: false,
