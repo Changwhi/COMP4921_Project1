@@ -1,14 +1,16 @@
 <!DOCTYPE html> <html>
-  <head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="bulma.min.css" />
-    <script
-      defer
-      src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
-    ></script>
-  </head>
+	
+    <%- include("templates/header") %> 
   <body>
+
+	        <script type="text/javascript"> 
+            $.cloudinary.config({ cloud_name: '<%= process.env.CLOUDINARY_CLOUD_NAME %>', secure: true});
+        </script>
+
     <section class="section">
+
+
+
       <div class="maincolumns columns is-desktop is-vcentered">
         <div
           class="columns is-10 is-offset-1 notification is-info is-light box container"
@@ -82,11 +84,11 @@
 						</div>
 					<% } %>
 
-					<!-- <form action="addpic" method="post">
+					 <form action="addpic" method="post">
 						<input type="hidden" name="user_id" value="<%= user_id %>"/>
 						<div class="field is-horizontal">
 						  <div class="field-label is-normal">
-							<label class="label">Add New User</label>
+							<label class="label">Add pictures</label>
 						  </div>
 						  <div class="field-body">
 							<div class="field">
@@ -109,7 +111,7 @@
 							</div>
 						  </div>
 						</div>
-					</form> -->
+					</form> 
 
 
           </div>

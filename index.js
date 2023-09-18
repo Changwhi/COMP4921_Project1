@@ -10,7 +10,6 @@ global.include = function(file) {
 }
 
 //require('dotenv').config();
-
 const express = require('express');
 const router = include('routes/router');
 

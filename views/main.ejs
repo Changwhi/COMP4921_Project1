@@ -1,62 +1,47 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="bulma.min.css" />
-    <script
-      defer
-      src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
-    ></script>
-  </head>
+    <%- include("templates/header") %> 
   <body>
     <section class="section">
       <div class="maincolumns columns is-desktop is-vcentered">
         <div
-          class="columns is-10 is-offset-1 notification is-info is-light box container"
+          class="column is-10 is-offset-1 notification is-info is-light box container"
         >
-          <div class="column">
-            <div class="buttons is-centered">
-              <button class="button is-success">Links</button>
-              <button class="button is-warning">Images</button>
-              <button class="button is-danger">Text</button>
-            </div>
-            <div class="column">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>URL</th>
-                    <th>Short URL</th>
-                    <th>Hits</th>
-                    <th>Active</th>
-                    <th>Created</th>
-                    <th>Last Hit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <a href="https://www.google.com" title="www.Google.com"
-                        >https://www.google.com</a
-                      >
-                      <strong></strong>
-                    </td>
-                    <td>
-                      <a href="https://www.google.com" title="www.Google.com"
-                        >www.google.com</a
-                      >
-                      <strong></strong>
-                    </td>
-                    <td>5</td>
-                    <td>
-                      <input type="checkbox" />
-                    </td>
-                    <td>Aug 8</td>
-                    <td>Aug 11</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div class="title">Users</div>
+          <% if (locals.allUsers) { %>
+          <div class="table-container">
+            <table class="table is-bordered is-hoverable is-striped is-narrow">
+              <thead>
+                <tr>
+                  <th>First Name</th>
+                  <th>Last Name</th>
+                  <th>Email</th>
+                  <th>&nbsp;</th>
+                  <th>&nbsp;</th>
+                  <th>&nbsp;</th>
+                </tr>
+              </thead>
+              <% let i=0; %> <% for(i=0; i < allUsers.length; i++) { %>
+              <tr>
+                <td><%= allUsers[i].first_name %></td>
+                <td><%= allUsers[i].last_name %></td>
+                <td><%= allUsers[i].email %></td>
+                <td>
+                  <a href="/showPics?id=<%= allUsers[i].user_id %>">
+                    <span class="icon is-small">
+                      <i class="fas fa-user"></i> </span
+                  ></a>
+                </td>
+              </tr>
+              <% } %>
+              <tfoot>
+                <tr>
+                  <td colspan="5">There are <%= i %> users.</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
+          <% } %>
         </div>
       </div>
     </section>
