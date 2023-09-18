@@ -38,7 +38,7 @@ router.use(session({
 ));
 
 router.get('/', async (req, res) => {
-    res.render('index');
+    res.render('main');
 });
 
 
