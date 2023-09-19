@@ -9,6 +9,9 @@ const expireTime = 60 * 60 * 1000;  // session expire time, persist for 1 hour.
 //    {replaceWith: '%'}
 //));
 
+//*** Temp users array for future SQL held accounts */
+var users = []; 
+
 // ****** MongoDB sessions *****// 
 const mongodb_user = process.env.MONGODB_USER;
 const mongodb_password = process.env.MONGODB_PASSWORD;
@@ -32,6 +35,11 @@ router.use(session({
 
 router.get('/', async (req, res) => {
       res.send("<h1>Hello word <!h1>");
+});
+
+
+router.get('/createUser', (req,res) => {
+    res.render("setupTempUser");
 });
 
 
