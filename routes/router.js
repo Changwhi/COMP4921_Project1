@@ -135,6 +135,42 @@ router.get("/", async (req, res) => {
     console.log(ex);
   }
 });
+
+router.get("/login", async (req, res) => {
+	console.log("index page hit");
+	
+		res.render("login");
+	
+  });
+
+
+router.get("/link", async (req, res) => {
+  console.log("index page hit");
+  try {
+    const users = await userCollection
+      .find()
+      .project({ first_name: 1, last_name: 1, email: 1, _id: 1 })
+      .toArray();
+
+    if (users === null) {
+      res.render("error", { message: "Error connecting to MongoDB" });
+      console.log("Error connecting to user collection");
+    } else {
+      users.map((item) => {
+        item.user_id = item._id;
+        return item;
+      });
+      console.log(users);
+
+      res.render("links", { allUsers: users });
+    }
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+});
+
 //* Successful or unsuccessful login*/
 router.post("/loggingin", (req, res) => {
   var email = req.body.email;
@@ -179,7 +215,8 @@ router.get("/tempLoggedin", (req, res) => {
 router.get("/showPics", async (req, res) => {
   console.log("picture page");
   try {
-    let user_id = req.query.id;
+    let user_id = "65024305f583fccec9aa2b99";
+    //req.query.id;
     console.log("userId: " + user_id);
 
     // Joi validate
@@ -196,6 +233,7 @@ router.get("/showPics", async (req, res) => {
     }
     const pics = await userPicCollection
       .find({ user_id: new ObjectId(user_id) })
+      //.find({ user_id: new ObjectId(user_id) })
       .toArray();
 
     if (pics === null) {
@@ -307,9 +345,57 @@ router.post("/setUserPic", upload.single("image"), function (req, res, next) {
   console.log(req.file);
 });
 
+router.get('/deletePics', async (req, res) => {
+	try {
+		console.log("delete pet image");
+
+		let pet_id = req.query.id;
+		let user_id = req.query.user;
+		let is_user_pic = req.query.pic;
+		let pic_id = req.query.id;
+
+		const schema = Joi.object(
+			{
+				user_id: Joi.string().alphanum().min(24).max(24).required(),
+				pet_id: Joi.string().alphanum().min(24).max(24).required(),
+			});
+		
+		const validationResult = schema.validate({user_id, pet_id});
+		
+		if (validationResult.error != null) {
+			console.log(validationResult.error);
+			
+			res.render('error', {message: 'Invalid user_id or pet_id'});
+			return;
+		}				
+
+		if (is_user_pic == 'true') {
+			console.log("pic_id: "+pet_id);
+			const success = await userPicCollection.updateOne({"_id": new ObjectId(pic_id)},
+				{$set: {image_id: undefined}},
+				{}
+			);
+
+			console.log("delete User Image: ");
+			console.log(success);
+			if (!success) {
+				res.render('error', {message: 'Error connecting to MySQL'});
+				return;
+			}
+		res.redirect(`/showPics`);
+
+		}
+	}
+	catch(ex) {
+		res.render('error', {message: 'Error connecting to MySQL'});
+		console.log("Error connecting to MySQL");
+		console.log(ex);	
+	}
+});
+
+
 router.get("/login", (req, res) => {
   res.render("login", { title: "Login Page" });
 });
-
 
 module.exports = router;
