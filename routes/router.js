@@ -37,33 +37,11 @@ router.use(session({
 }
 ));
 
+//* User is brought to index page to login or sign up */
 router.get('/', async (req, res) => {
     res.render('index');
 });
-
-
-//** Render setupTempUser which is /createUser originally, renamed for temp use. */
-router.get('/createUser', (req,res) => {
-    //TODO render awesome custom & stylized Sign Up page by Changwhi
-    res.render("tempUserSetup", {title: "Sign up Page"});
-});
-
-//* Middelware for hashing password and pushing into temp DB. */
-router.post('/submitUser', (req,res) => {
-    var email = req.body.email;
-    var password = req.body.password;
-
-    var hashedPassword = bcrypt.hashSync(password, saltRounds);
-    users.push({ email: email, password: hashedPassword });
-    res.render('tempLogin', {title: "User submission page"})
-});
-
-router.get('/login', (req,res) => {
-    //TODO render awesome custom & stylized login page by Changwhi
-    res.render('tempLogin', {title: "Login Page"})
-});
-
-
+//* Successful or unsuccessful login*/
 router.post('/loggingin', (req,res) => {
     var email = req.body.email;
     var password = req.body.password;
@@ -78,9 +56,24 @@ router.post('/loggingin', (req,res) => {
             }
         }
     }
+    //User & PW combo not found.
+    res.redirect("/index");
+});
 
-    //user and password combination not found
-    res.redirect("/login");
+
+//** Render setupTempUser which is /createUser originally, renamed for temp use. */
+router.get('/createUser', (req,res) => {
+    //TODO render awesome custom & stylized Sign Up page by Changwhi
+    res.render("tempUserSetup", {title: "Sign up Page"});
+});
+
+//* Middleware for hashing password and pushing into temp DB. */
+router.post('/submitUser', (req,res) => {
+    var email = req.body.email;
+    var password = req.body.password;
+    var hashedPassword = bcrypt.hashSync(password, saltRounds);
+    users.push({ email: email, password: hashedPassword });
+    res.render('index')
 });
 
 router.get('/tempLoggedin', (req,res) => {
@@ -90,5 +83,8 @@ router.get('/tempLoggedin', (req,res) => {
     res.send(html);
 });
 
+// router.get('/login', (req,res) => {
+//     res.render('tempLogin', {title: "Login Page"})
+// });
 
 module.exports = router;
