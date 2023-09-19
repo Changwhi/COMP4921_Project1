@@ -23,7 +23,7 @@ const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 
 var mongoStore = MongoStore.create({
-    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster1.5f9ckjd.mongodb.net/COMP4921_Project1_DB?retryWrites=true&w=majority/sessions`,
+    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster1.5f9ckjd.mongodb.net/COMP4921_Project1_DB?retryWrites=true&w=majority`,
     crypto: {
         secret: mongodb_session_secret
     }
@@ -44,17 +44,51 @@ router.get('/', async (req, res) => {
 
 //** Render setupTempUser which is /createUser originally, renamed for temp use. */
 router.get('/createUser', (req,res) => {
-    res.render("setupTempUser", {title: "User Creation"});
+    //TODO render awesome custom & stylized Sign Up page by Changwhi
+    res.render("tempUserSetup", {title: "Sign up Page"});
 });
 
+//* Middelware for hashing password and pushing into temp DB. */
 router.post('/submitUser', (req,res) => {
-    var username = req.body.username;
+    var email = req.body.email;
     var password = req.body.password;
 
     var hashedPassword = bcrypt.hashSync(password, saltRounds);
-    users.push({ username: username, password: hashedPassword });
+    users.push({ email: email, password: hashedPassword });
+    res.render('tempLogin', {title: "User submission page"})
 });
 
+router.get('/login', (req,res) => {
+    //TODO render awesome custom & stylized login page by Changwhi
+    res.render('tempLogin', {title: "Login Page"})
+});
+
+
+router.post('/loggingin', (req,res) => {
+    var email = req.body.email;
+    var password = req.body.password;
+
+    for (i = 0; i < users.length;i++) {
+        if (users[i].email == email) {
+            if (bcrypt.compareSync(password, users[i].password)) {
+                req.session.email = email;
+                req.session.cookie.maxAge = expireTime;
+                res.redirect('/tempLoggedIn');
+                return;
+            }
+        }
+    }
+
+    //user and password combination not found
+    res.redirect("/login");
+});
+
+router.get('/tempLoggedin', (req,res) => {
+    var html = `
+    You are logged in!
+    `;
+    res.send(html);
+});
 
 
 module.exports = router;
