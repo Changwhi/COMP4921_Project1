@@ -1,9 +1,13 @@
 const router = require('express').Router();
-const database = include('DBConnectionMongoDB');
-const session = require('express-session');
+require('dotenv').config();
+// const database = include('DBConnectionMongoDB');
 const MongoStore = require('connect-mongo');
-const expireTime = 60 * 60 * 1000;  // session expire time, persist for 1 hour. 
 //const mongoSanitize = require('express-mongo-sanitize');
+const session = require('express-session');
+const expireTime = 60 * 60 * 1000;  // session expire time, persist for 1 hour. 
+
+const bcrypt = require('bcrypt');
+const saltRounds = 12;
 
 //router.use(mongoSanitize(
 //    {replaceWith: '%'}
@@ -19,7 +23,7 @@ const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 
 var mongoStore = MongoStore.create({
-    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster1.5f9ckjd.mongodb.net/Sessions`,
+    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster1.5f9ckjd.mongodb.net/COMP4921_Project1_DB?retryWrites=true&w=majority/sessions`,
     crypto: {
         secret: mongodb_session_secret
     }
@@ -38,9 +42,19 @@ router.get('/', async (req, res) => {
 });
 
 
+//** Render setupTempUser which is /createUser originally, renamed for temp use. */
 router.get('/createUser', (req,res) => {
-    res.render("setupTempUser");
+    res.render("setupTempUser", {title: "User Creation"});
 });
+
+router.post('/submitUser', (req,res) => {
+    var username = req.body.username;
+    var password = req.body.password;
+
+    var hashedPassword = bcrypt.hashSync(password, saltRounds);
+    users.push({ username: username, password: hashedPassword });
+});
+
 
 
 module.exports = router;
