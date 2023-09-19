@@ -39,7 +39,7 @@ router.use(session({
 
 //* User is brought to index page to login or sign up */
 router.get('/', async (req, res) => {
-    res.render('index');
+    res.render('main');
 });
 //* Successful or unsuccessful login*/
 router.post('/loggingin', (req,res) => {
