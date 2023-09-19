@@ -1,5 +1,8 @@
 const router = require('express').Router();
 const database = include('DBConnectionMongoDB');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
+const expireTime = 60 * 60 * 1000;  // session expire time, persist for 1 hour. 
 //const mongoSanitize = require('express-mongo-sanitize');
 
 //router.use(mongoSanitize(
@@ -13,7 +16,7 @@ const mongodb_session_secret = process.env.MONGODB_SESSION_SECRET;
 const node_session_secret = process.env.NODE_SESSION_SECRET;
 
 var mongoStore = MongoStore.create({
-    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster0.tpmee.mongodb.net/Sessions`,
+    mongoUrl: `mongodb+srv://${mongodb_user}:${mongodb_password}@cluster1.5f9ckjd.mongodb.net/Sessions`,
     crypto: {
         secret: mongodb_session_secret
     }
