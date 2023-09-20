@@ -8,6 +8,7 @@
         secure: true,
       });
     </script>
+
     <section class="section">
       <div class="maincolumns columns is-desktop is-vcentered">
         <div
@@ -30,7 +31,8 @@
                       <th>&nbsp;</th>
                     </tr>
                   </thead>
-                  <% let i=0; %> <% for(i=0; i < allPics.length; i++) { %>
+                  <% let i=0; %> 
+                  <% for(i=0; i < allPics.length; i++) { %>
                   <tr>
                     <td><%= allPics[i].name %></td>
                     <% if (allPics[i].image_id) { %>
@@ -47,6 +49,8 @@
                         );
                       </script>
                       <% } else { %>
+                    </td>
+
                     <td colspan="2">
                       <form
                         action="setUserPic"
@@ -117,6 +121,7 @@
               </div>
               <% } %>
             </div>
+
             <form action="addpic" method="post">
               <input type="hidden" name="user_id" value="<%= user_id %>" />
               <div class="field is-horizontal">
@@ -155,8 +160,6 @@
                 </div>
               </div>
             </form>
-
-			
           </div>
         </div>
       </div>
@@ -165,7 +168,8 @@
       const fileInput = document.querySelector(
         "#picture-upload input[type=file]"
       );
-      fileInput.onchange = () => { if (fileInput.files.length > 0) {
+      fileInput.onchange = () => {
+        if (fileInput.files.length > 0) {
           const fileName = document.querySelector("#picture-upload .file-name");
           fileName.textContent = fileInput.files[0].name;
         }

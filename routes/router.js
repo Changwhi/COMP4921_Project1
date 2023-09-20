@@ -9,10 +9,14 @@ const expireTime = 60 * 60 * 1000; // session expire time, persist for 1 hour.
 const bcrypt = require("bcrypt");
 const saltRounds = 12;
 
+
+
 //Cloudinary
 const database = include("databaseConnectionMongoDB");
 var ObjectId = require("mongodb").ObjectId;
 const { v4: uuid } = require("uuid");
+const passwordPepper = "SeCretPeppa4MySal+";
+const crypto = require('crypto');
 
 const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
 const cloudinary = require("cloudinary");
@@ -233,7 +237,6 @@ router.get("/showPics", async (req, res) => {
     }
     const pics = await userPicCollection
       .find({ user_id: new ObjectId(user_id) })
-      //.find({ user_id: new ObjectId(user_id) })
       .toArray();
 
     if (pics === null) {
@@ -245,7 +248,7 @@ router.get("/showPics", async (req, res) => {
         return item;
       });
       console.log(pics);
-      res.render("images", { allPics: pics, user_id: user_id });
+      res.render("images", {allPics: pics, user_id: user_id});
     }
   } catch (ex) {
     res.render("error", { message: "Error connecting to MongoDB" });
@@ -285,8 +288,8 @@ router.post("/addpic", async (req, res) => {
       comment: req.body.comment,
     });
 
-    res.redirect(`/showPics?id=${user_id}`);
-  } catch (ex) {
+	res.redirect(`/showPics?id=${user_id}`);
+} catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
     console.log("Error connecting to MySQL");
     console.log(ex);
