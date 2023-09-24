@@ -402,4 +402,8 @@ router.get("/login", (req, res) => {
   res.render("login", { title: "Login Page" });
 });
 
+router.get('*', (req, res) => {
+	res.status(404).render('404', {message: "404 No such page found."})
+})
+
 module.exports = router;
