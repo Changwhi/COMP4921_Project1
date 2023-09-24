@@ -147,7 +147,12 @@ router.get("/login", async (req, res) => {
 		res.render("login");
 	
   });
-
+router.get("/signup", async (req, res) => {
+	console.log("index page hit");
+	
+		res.render("signup");
+	
+  });
 
 router.get("/link", async (req, res) => {
   console.log("index page hit");
