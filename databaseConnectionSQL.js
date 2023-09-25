@@ -6,9 +6,10 @@ const dbConfig = {
 	user: process.env.MYSQL_USER,
 	password: process.env.MYSQL_PASSWORD,
 	database: process.env.MYSQL_DATABASE,
-	multipleStatements: false
+	multipleStatements: false,
+	namedPlaceholders: true
 };
 
-var database = mysql.createPool(dbConfig);
+var mySqlDatabase = mysql.createPool(dbConfig);
 
-module.exports = database;
+module.exports = mySqlDatabase;

@@ -9,6 +9,8 @@ const expireTime = 60 * 60 * 1000; // session expire time, persist for 1 hour.
 const bcrypt = require("bcrypt");
 const saltRounds = 12;
 
+// mySQL
+const db_users = include('database/users'); 
 
 
 //Cloudinary
@@ -208,7 +210,7 @@ router.post("/submitUser", async (req, res) => {
   if (success) {
     res.redirect('/login')
   } else if (!success) {
-    res.render('error', {error: "Failed to create the user", title: "User creation failed"})
+    res.render('error', {message: "Failed to create the user", title: "User creation failed"})
   }
 });
 
