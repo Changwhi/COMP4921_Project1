@@ -21,25 +21,18 @@ async function createUser(postData) {
 		console.log(results[0]);
 		return true;
 	}
-	catch(err) {
-        console.log(postData.email)
-        console.log(postData.passwordHash)
-		console.log("Error inserting user");
+	catch(err) {	
+        console.log("Error inserting user");
         console.log(err);
 		return false;
 	}
 }
 
-async function getUsers(getData) {
+async function getUsers() {
 	let getUsersSQL = `
-		SELECT password, email, user_id, user_type_id
+		SELECT hashed_password, email, user_id, user_type_id
 		FROM user;
 	`;
-
-	let params =  {
-
-	}
-
 	
 	try {
 		const results = await mySqlDatabase.query(getUsersSQL);
@@ -57,4 +50,4 @@ async function getUsers(getData) {
 
 
 
-module.exports = {createUser, getUsers };
+module.exports = {createUser, getUsers};

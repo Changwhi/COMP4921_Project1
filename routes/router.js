@@ -176,25 +176,40 @@ router.get("/link", async (req, res) => {
   }
 });
 
-//* Successful or unsuccessful login*/
-router.post("/loggingin", (req, res) => {
-  var email = req.body.email;
-  var password = req.body.password;
-
+//* Login check */
+router.post("/loggingin", async (req, res) => {
+  let email = req.body.email;
+  let password = req.body.password;
+  let users = await db_users.getUsers();
+  let user;
   for (i = 0; i < users.length; i++) {
+    console.info(users[i].email);
     if (users[i].email == email) {
-      if (bcrypt.compareSync(password, users[i].password)) {
-        req.session.email = email;
-        req.session.cookie.maxAge = expireTime;
-        res.redirect("/tempLoggedIn");
-        return;
-      }
+        user = users[i];
     }
+  }
+  for (i = 0; i < users.length; i++) {
+      const isValidPassword = bcrypt.compareSync(password, user.hashed_password)
+      if (user.email == email) {
+          if (isValidPassword){
+              req.session.userID = user.user_id
+              req.session.authenticated = true;
+              req.session.email = email;
+              req.session.cookie.maxAge = expireTime;
+              res.redirect('/link');
+              return
+          }
+          else if (!isValidPassword){
+              req.session.authenticated = false;
+              res.redirect('/login');
+              return;
+          }
+      }
   }
   //User & PW combo not found.
   res.render("login");
 });
-
+//** CREATING THE USER SECTION */
 //** Render tempUserSignup which is /createUser originally, renamed for temp use. */
 router.get("/createUser", (req, res) => {
   //TODO render awesome custom & stylized Sign Up page by Changwhi
@@ -408,7 +423,7 @@ router.get("/login", (req, res) => {
 });
 
 router.get('*', (req, res) => {
-	res.status(404).render('404', {message: "404 No such page found."})
+	res.status(404).render('error', {message: "404 No such page found."})
 })
 
 module.exports = router;
