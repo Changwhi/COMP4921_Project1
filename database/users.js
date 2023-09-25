@@ -4,7 +4,7 @@ async function createUser(postData) {
 	let createUserSQL = `
 	INSERT INTO user
 	(email, password, user_type_id)
-	VALUES (:email, :passwordHash, 
+	VALUES (:email, :hashedPassword, 
 	(SELECT user_type_id
 	FROM user_type
 	WHERE user_type = "user"));
@@ -12,7 +12,7 @@ async function createUser(postData) {
 
 	let params = {
 		email: postData.email,
-		passwordHash: postData.passwordHash
+		hashedPassword: postData.hashedPassword
 	}
 	
 	try {
@@ -56,4 +56,4 @@ async function getUsers(getData) {
 
 
 
-module.exports = {createUser, getUsers };
+module.exports = {createUser, getUsers};

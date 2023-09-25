@@ -46,8 +46,6 @@ router.use(mongoSanitize({ replaceWith: "%" }));
 //    {replaceWith: '%'}
 //));
 
-//*** Temp users array for future SQL held accounts */
-var users = [];
 
 // ****** MongoDB sessions *****//
 const mongodb_user = process.env.MONGODB_USER;
@@ -195,20 +193,25 @@ router.post("/loggingin", (req, res) => {
   res.render("login");
 });
 
-//** Render setupTempUser which is /createUser originally, renamed for temp use. */
+//** Render tempUserSignup which is /createUser originally, renamed for temp use. */
 router.get("/createUser", (req, res) => {
   //TODO render awesome custom & stylized Sign Up page by Changwhi
-  res.render("tempUserSetup", { title: "Sign up Page" });
+  res.render("tempUserSignup", { title: "Sign up Page" });
 });
 
-//* Middleware for hashing password and pushing into temp DB. */
-router.post("/submitUser", (req, res) => {
+//* Middleware for hashing password and pushing into mySQL DB*/
+router.post("/submitUser", async (req, res) => {
   var email = req.body.email;
   var password = req.body.password;
   var hashedPassword = bcrypt.hashSync(password, saltRounds);
-  users.push({ email: email, password: hashedPassword });
-  res.render("index");
+  var success = await db_users.createUser({email: email, hashedPassword: hashedPassword});
+  if (success) {
+    res.redirect('/login')
+  } else if (!success) {
+    res.render('error', {error: "Failed to create the user", title: "User creation failed"})
+  }
 });
+
 
 router.get("/tempLoggedin", (req, res) => {
   var html = `
