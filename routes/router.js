@@ -4,7 +4,7 @@ require("dotenv").config();
 const MongoStore = require("connect-mongo");
 //const mongoSanitize = require('express-mongo-sanitize');
 const session = require("express-session");
-const expireTime = 60 * 60 * 1000; // session expire time, persist for 1 hour.
+const expireTime = 24 * 60 * 60 * 1000; // session expire time, persist for 1 hour.
 
 const bcrypt = require("bcrypt");
 const saltRounds = 12;
@@ -112,6 +112,14 @@ function sleep(ms) {
 }
 //ttesting
 
+function isValidSession(req, res, next) {
+  if (req.session.authenticated) {
+      next();
+  } else {
+      res.render("error", {message: "Not Authenticated"});
+  }
+}
+
 //* User is brought to index page to login or sign up */
 router.get("/", async (req, res) => {
   console.log("index page hit");
@@ -149,7 +157,7 @@ router.get("/login", async (req, res) => {
   });
 
 
-router.get("/link", async (req, res) => {
+router.get("/link", isValidSession, async (req, res) => {
   console.log("index page hit");
   try {
     const users = await userCollection
@@ -178,10 +186,10 @@ router.get("/link", async (req, res) => {
 
 //* Login check */
 router.post("/loggingin", async (req, res) => {
-  let email = req.body.email;
-  let password = req.body.password;
-  let users = await db_users.getUsers();
-  let user;
+  var email = req.body.email;
+  var password = req.body.password;
+  var users = await db_users.getUsers();
+  var user;
   for (i = 0; i < users.length; i++) {
     console.info(users[i].email);
     if (users[i].email == email) {
