@@ -10,7 +10,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 12;
 
 // mySQL
-const db_users = include('database/users'); 
+const db_users = include('database/users');
 
 
 //Cloudinary
@@ -151,15 +151,14 @@ router.get("/", async (req, res) => {
 
 router.get("/login", async (req, res) => {
 	console.log("index page hit");
-	
+
 		res.render("login");
-	
+
   });
 router.get("/signup", async (req, res) => {
 	console.log("index page hit");
-	
-		res.render("signup");
-	
+	res.render("signup");
+
   });
 
 router.get("/link", isValidSession, async (req, res) => {
@@ -233,12 +232,13 @@ router.get("/createUser", (req, res) => {
 router.post("/submitUser", async (req, res) => {
   var email = req.body.email;
   var password = req.body.password;
+  var name = req.body.name;
   var hashedPassword = bcrypt.hashSync(password, saltRounds);
-  var success = await db_users.createUser({email: email, hashedPassword: hashedPassword});
+  var success = await db_users.createUser({email: email, hashedPassword: hashedPassword, name: name});
   if (success) {
     res.redirect('/login')
   } else if (!success) {
-    res.render('error', {message: "Failed to create the user", title: "User creation failed"})
+    res.render('error', {message: `Failed to create the user ${email}, ${name}`, title: "User creation failed"})
   }
 });
 
@@ -396,15 +396,15 @@ router.get('/deletePics', async (req, res) => {
 				user_id: Joi.string().alphanum().min(24).max(24).required(),
 				pet_id: Joi.string().alphanum().min(24).max(24).required(),
 			});
-		
+
 		const validationResult = schema.validate({user_id, pet_id});
-		
+
 		if (validationResult.error != null) {
 			console.log(validationResult.error);
-			
+
 			res.render('error', {message: 'Invalid user_id or pet_id'});
 			return;
-		}				
+		}
 
 		if (is_user_pic == 'true') {
 			console.log("pic_id: "+pet_id);
@@ -426,7 +426,7 @@ router.get('/deletePics', async (req, res) => {
 	catch(ex) {
 		res.render('error', {message: 'Error connecting to MySQL'});
 		console.log("Error connecting to MySQL");
-		console.log(ex);	
+		console.log(ex);
 	}
 });
 
