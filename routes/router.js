@@ -71,6 +71,11 @@ router.use(
   })
 );
 //testing
+function setLoginStatus(req, res, next) {
+  // Determine the login status (true if logged in, false otherwise)
+  res.locals.isLoggedIn = req.session.authenticated === true;
+  next();
+}
 
 //* User is brought to index page to login or sign up */
 router.get("/", async (req, res) => {
@@ -92,7 +97,7 @@ router.get("/signup", async (req, res) => {
   console.log("index page hit");
   console.log(req.query.invalid)
   var invalid = req.query.invalid === undefined ? true : req.query.invalid;
-  res.render("signup", { invalid: invalid });
+  res.render("signup", { invalid: invalid, isLoggedIn: isLoggedIn });
 
 });
 
@@ -161,18 +166,20 @@ function isValidSession(req) {
 function sessionValidation(req, res, next) {
   console.log("hit sessionValidation")
   if (!isValidSession(req)) {
+    res.locals.isLoggedIn = req.session.authenticated === true;
     req.session.destroy();
     res.redirect('/login');
     return;
   }
   else {
+    res.locals.isLoggedIn = req.session.authenticated === true;
     next();
   }
 }
 
 //******************************************** After logged in **************************
-router.use('/loggedin', sessionValidation);
-router.get("/loggedin/pic", async (req, res) => {
+// router.use('/loggedin', sessionValidation);
+router.get("/pic", async (req, res) => {
   res.send(
     '<form action="picUpload" method="post" enctype="multipart/form-data">' +
     '<p>Public ID: <input type="text" name="title"/></p>' +
@@ -182,42 +189,42 @@ router.get("/loggedin/pic", async (req, res) => {
   );
 });
 
-router.post("/loggedin/picUpload", upload.single("image"), function(req, res, next) {
-  let buf64 = req.file.buffer.toString("base64");
-  stream = cloudinary.uploader.upload(
-    "data:image/png;base64," + buf64,
-    function(result) {
-      //_stream
-      console.log(result);
-      res.send(
-        'Done:<br/> <img src="' +
-        result.url +
-        '"/><br/>' +
-        cloudinary.image(result.public_id, {
-          format: "png",
-          width: 100,
-          height: 130,
-          crop: "fit",
-        })
-      );
-    },
-    { public_id: req.body.title }
-  );
-  console.log(req.body);
-  console.log(req.file);
-});
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-router.get("/loggedin/link", async (req, res) => {
+// router.post("/picUpload", upload.single("image"), function(req, res, next) {
+//   let buf64 = req.file.buffer.toString("base64");
+//   stream = cloudinary.uploader.upload(
+//     "data:image/png;base64," + buf64,
+//     function(result) {
+//       //_stream
+//       console.log(result);
+//       res.send(
+//         'Done:<br/> <img src="' +
+//         result.url +
+//         '"/><br/>' +
+//         cloudinary.image(result.public_id, {
+//           format: "png",
+//           width: 100,
+//           height: 130,
+//           crop: "fit",
+//         })
+//       );
+//     },
+//     { public_id: req.body.title }
+//   );
+//   console.log(req.body);
+//   console.log(req.file);
+// });
+//
+// function sleep(ms) {
+//   return new Promise((resolve) => setTimeout(resolve, ms));
+// }
+//
+router.get("/link", sessionValidation, async (req, res) => {
   console.log("link page hit");
   res.render("links");
 });
 
 
-router.get("/loggedin/showPics", async (req, res) => {
+router.get("/showPics", sessionValidation, async (req, res) => {
   console.log("picture page");
   try {
     let user_id = "65024305f583fccec9aa2b99";
@@ -258,7 +265,7 @@ router.get("/loggedin/showPics", async (req, res) => {
   }
 });
 
-router.post("/loggedin/addpic", async (req, res) => {
+router.post("/addpic", sessionValidation, async (req, res) => {
   try {
     console.log("form submit");
 
@@ -289,7 +296,7 @@ router.post("/loggedin/addpic", async (req, res) => {
       comment: req.body.comment,
     });
 
-    res.redirect(`/loggedin/showPics?id=${user_id}`);
+    res.redirect(`/showPics?id=${user_id}`);
   } catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
     console.log("Error connecting to MySQL");
@@ -297,7 +304,7 @@ router.post("/loggedin/addpic", async (req, res) => {
   }
 });
 
-router.post("/loggedin/setUserPic", upload.single("image"), function(req, res, next) {
+router.post("/setUserPic", sessionValidation, upload.single("image"), function(req, res, next) {
   let image_uuid = uuid();
   let pic_id = req.body.pic_id;
   let user_id = req.body.user_id;
@@ -349,7 +356,7 @@ router.post("/loggedin/setUserPic", upload.single("image"), function(req, res, n
   console.log(req.file);
 });
 
-router.get('/loggedin/deletePics', async (req, res) => {
+router.get('/deletePics', sessionValidation, async (req, res) => {
   try {
     console.log("delete pet image");
 

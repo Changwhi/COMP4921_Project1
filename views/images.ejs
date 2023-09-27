@@ -51,7 +51,7 @@
                             </td>
 
                             <td colspan="2">
-                              <form action="/loggedin/setUserPic" method="post" enctype="multipart/form-data">
+                              <form action="/setUserPic" method="post" enctype="multipart/form-data">
                                 <div class="field is-horizontal">
                                   <input type="hidden" name="pic_id" value="<%= allPics[i].pic_id %>" />
                                   <input type="hidden" name="user_id" value="<%= allPics[i].user_id %>" />
@@ -81,7 +81,7 @@
                             <% if (allPics[i].image_id) { %>
                               <td>
                                 <a
-                                  href="/loggedin/deletePics?id=<%= allPics[i].pic_id %>&user=<%= allPics[i].user_id %>&pic=<%=true%>">
+                                  href="/deletePics?id=<%= allPics[i].pic_id %>&user=<%= allPics[i].user_id %>&pic=<%=true%>">
                                   <span class="icon is-small">
                                     <i class="fas fa-eraser"></i> </span></a>
                               </td>
@@ -98,7 +98,7 @@
                 <% } %>
             </div>
 
-            <form action="loggedin/addpic" method="post">
+            <form action="/addpic" method="post">
               <input type="hidden" name="user_id" value="<%= user_id %>" />
               <div class="field is-horizontal">
                 <div class="field-label is-normal">
