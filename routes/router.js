@@ -12,6 +12,9 @@ const saltRounds = 12;
 // mySQL
 const db_users = include('database/users');
 
+//validation
+const validationFunctions = include('routes/functions/Validation');
+
 
 //Cloudinary
 const database = include("databaseConnectionMongoDB");
@@ -45,9 +48,8 @@ const mongoSanitize = require("express-mongo-sanitize");
 router.use(mongoSanitize({ replaceWith: "%" }));
 
 //router.use(mongoSanitize(
-//    {replaceWith: '%'}
+//    {replaceWith: '%'}Authentication (login with hashed passwords, password validation >= 10 characters with upper/lower, numbers, symbols)Authentication (login with hashed passwords, password validation >= 10 characters with upper/lower, numbers, symbols)Authentication (login with hashed passwords, password validation >= 10 characters with upper/lower, numbers, symbols)
 //));
-
 
 // ****** MongoDB sessions *****//
 const mongodb_user = process.env.MONGODB_USER;
@@ -82,13 +84,14 @@ router.get("/", async (req, res) => {
 
 router.get("/login", async (req, res) => {
   console.log("index page hit");
-
   res.render("login");
 
 });
 router.get("/signup", async (req, res) => {
   console.log("index page hit");
-  res.render("signup");
+  console.log(req.query.invalid)
+  var invalid = req.query.invalid === undefined ? true : req.query.invalid;
+  res.render("signup", { invalid: invalid });
 
 });
 
@@ -132,7 +135,12 @@ router.post("/submitUser", async (req, res) => {
   var password = req.body.password;
   var name = req.body.name;
   var hashedPassword = bcrypt.hashSync(password, saltRounds);
+
+  if (!validationFunctions.validatePassword(password)) {
+    res.redirect('/signup?invalid=true')
+  }
   var success = await db_users.createUser({ email: email, hashedPassword: hashedPassword, name: name });
+
   if (success) {
     res.redirect('/login')
   } else if (!success) {
