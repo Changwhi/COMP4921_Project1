@@ -75,40 +75,9 @@ router.use(
 //* User is brought to index page to login or sign up */
 router.get("/", async (req, res) => {
   console.log("index page hit");
-  try {
-    const users = await userCollection
-      .find()
-      .project({ first_name: 1, last_name: 1, email: 1, _id: 1 })
-      .toArray();
-
-    if (users === null) {
-      res.render("error", { message: "Error connecting to MongoDB" });
-      console.log("Error connecting to user collection");
-    } else {
-      users.map((item) => {
-        item.user_id = item._id;
-        return item;
-      });
-      console.log(users);
-
-      res.render("index", { allUsers: users });
-    }
-  } catch (ex) {
-    res.render("error", { message: "Error connecting to MySQL" });
-    console.log("Error connecting to MySQL");
-    console.log("this is where we need to check")
-    console.log(ex);
-  }
+  res.render("index");
 });
 
-
-function isValidSession(req, res, next) {
-  if (req.session.authenticated) {
-    next();
-  } else {
-    res.render("error", { message: "Not Authenticated" });
-  }
-}
 
 
 router.get("/login", async (req, res) => {
@@ -171,11 +140,9 @@ router.post("/submitUser", async (req, res) => {
   }
 });
 
-router.get("/login", (req, res) => {
-  res.render("login", { title: "Login Page" });
-});
 
 function isValidSession(req) {
+  console.log("isValidSession")
   if (req.session.authenticated) {
     return true;
   }
@@ -183,6 +150,7 @@ function isValidSession(req) {
 }
 
 function sessionValidation(req, res, next) {
+  console.log("hit sessionValidation")
   if (!isValidSession(req)) {
     req.session.destroy();
     res.redirect('/login');
@@ -194,9 +162,9 @@ function sessionValidation(req, res, next) {
 }
 
 //******************************************** After logged in **************************
-app.use('/loggedin', sessionValidation);
+router.use('/loggedin', sessionValidation);
 
-router.get("/pic", async (req, res) => {
+router.get("/loggedin/pic", async (req, res) => {
   res.send(
     '<form action="picUpload" method="post" enctype="multipart/form-data">' +
     '<p>Public ID: <input type="text" name="title"/></p>' +
@@ -206,7 +174,7 @@ router.get("/pic", async (req, res) => {
   );
 });
 
-router.post("/picUpload", upload.single("image"), function(req, res, next) {
+router.post("/loggedin/picUpload", upload.single("image"), function(req, res, next) {
   let buf64 = req.file.buffer.toString("base64");
   stream = cloudinary.uploader.upload(
     "data:image/png;base64," + buf64,
@@ -235,35 +203,13 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-router.get("/link", isValidSession, async (req, res) => {
-  console.log("index page hit");
-  try {
-    const users = await userCollection
-      .find()
-      .project({ first_name: 1, last_name: 1, email: 1, _id: 1 })
-      .toArray();
-
-    if (users === null) {
-      res.render("error", { message: "Error connecting to MongoDB" });
-      console.log("Error connecting to user collection");
-    } else {
-      users.map((item) => {
-        item.user_id = item._id;
-        return item;
-      });
-      console.log(users);
-
-      res.render("links", { allUsers: users });
-    }
-  } catch (ex) {
-    res.render("error", { message: "Error connecting to MySQL" });
-    console.log("Error connecting to MySQL");
-    console.log(ex);
-  }
+router.get("/loggedin/link", async (req, res) => {
+  console.log("link page hit");
+  res.render("links");
 });
 
 
-router.get("/showPics", async (req, res) => {
+router.get("/loggedin/showPics", async (req, res) => {
   console.log("picture page");
   try {
     let user_id = "65024305f583fccec9aa2b99";
@@ -304,7 +250,7 @@ router.get("/showPics", async (req, res) => {
   }
 });
 
-router.post("/addpic", async (req, res) => {
+router.post("/loggedin/addpic", async (req, res) => {
   try {
     console.log("form submit");
 
@@ -335,7 +281,7 @@ router.post("/addpic", async (req, res) => {
       comment: req.body.comment,
     });
 
-    res.redirect(`/showPics?id=${user_id}`);
+    res.redirect(`/loggedin/showPics?id=${user_id}`);
   } catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
     console.log("Error connecting to MySQL");
@@ -343,7 +289,7 @@ router.post("/addpic", async (req, res) => {
   }
 });
 
-router.post("/setUserPic", upload.single("image"), function(req, res, next) {
+router.post("/loggedin/setUserPic", upload.single("image"), function(req, res, next) {
   let image_uuid = uuid();
   let pic_id = req.body.pic_id;
   let user_id = req.body.user_id;
@@ -381,7 +327,7 @@ router.post("/setUserPic", upload.single("image"), function(req, res, next) {
           });
           console.log("Error uploading pet image");
         } else {
-          res.redirect(`/showPics?id=${user_id}`);
+          res.redirect(`/loggedin/showPics?id=${user_id}`);
         }
       } catch (ex) {
         res.render("error", { message: "Error connecting to MongoDB" });
@@ -395,7 +341,7 @@ router.post("/setUserPic", upload.single("image"), function(req, res, next) {
   console.log(req.file);
 });
 
-router.get('/deletePics', async (req, res) => {
+router.get('/loggedin/deletePics', async (req, res) => {
   try {
     console.log("delete pet image");
 
@@ -432,7 +378,7 @@ router.get('/deletePics', async (req, res) => {
         res.render('error', { message: 'Error connecting to MySQL' });
         return;
       }
-      res.redirect(`/showPics`);
+      res.redirect(`/loggedin/showPics`);
 
     }
   }
