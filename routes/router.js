@@ -14,8 +14,6 @@ const db_users = include('database/users');
 
 //validation
 const validationFunctions = include('routes/functions/Validation');
-
-
 //Cloudinary
 const database = include("databaseConnectionMongoDB");
 var ObjectId = require("mongodb").ObjectId;
@@ -77,14 +75,17 @@ router.use(
 //* User is brought to index page to login or sign up */
 router.get("/", async (req, res) => {
   console.log("index page hit");
-  res.render("index");
+  const isLoggedIn = isValidSession(req)
+  console.log(isLoggedIn)
+  res.render("index", { isLoggedIn: isLoggedIn });
 });
 
 
 
 router.get("/login", async (req, res) => {
   console.log("index page hit");
-  res.render("login");
+  const isLoggedIn = isValidSession(req)
+  res.render("login", { isLoggedIn: isLoggedIn });
 
 });
 router.get("/signup", async (req, res) => {
@@ -114,7 +115,7 @@ router.post("/loggingin", async (req, res) => {
         req.session.authenticated = true;
         req.session.email = email;
         req.session.cookie.maxAge = expireTime;
-        res.redirect('/link');
+        res.render('index', { isLoggedIn: isValidSession });
         return
       }
       else if (!isValidPassword) {
@@ -171,7 +172,6 @@ function sessionValidation(req, res, next) {
 
 //******************************************** After logged in **************************
 router.use('/loggedin', sessionValidation);
-
 router.get("/loggedin/pic", async (req, res) => {
   res.send(
     '<form action="picUpload" method="post" enctype="multipart/form-data">' +

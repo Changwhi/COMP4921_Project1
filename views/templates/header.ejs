@@ -47,10 +47,18 @@
       <div class="navbar-end">
         <div class="navbar-item">
           <div class="buttons">
-            <a href="/signup" class="button is-primary">
-              <strong>Sign up</strong>
-            </a>
-            <a class="button is-light" href="/login"> Log in </a>
+
+            <% console.log(isLoggedIn) %>
+              <% if (isLoggedIn) { %>
+                <a href="/logout" class="button is-primary">
+                  <strong>Log Out</strong>
+                </a>
+                <% } else { %>
+                  <a href="/signup" class="button is-primary">
+                    <strong>Sign up</strong>
+                  </a>
+                  <a class="button is-light" href="/login"> Log in </a>
+                  <% } %>
           </div>
         </div>
       </div>
