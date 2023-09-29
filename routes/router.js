@@ -11,6 +11,7 @@ const saltRounds = 12;
 
 // mySQL
 const db_users = include('database/users');
+const db_text = include('database/textInsert');
 
 //validation
 const validationFunctions = include('routes/functions/Validation');
@@ -407,6 +408,18 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
 
 router.get('/showText', sessionValidation, (req, res) => {
   res.render('text')
+})
+
+router.post('/submitText', (req,res) => {
+  let textTitle = req.body.text_title
+  let textContent = req.body.textContent
+  let text_UUID = uuid()
+  let textSuccess = db_text.createText({title: textTitle, content: textContent, textUUID: text_UUID})
+  if (textSuccess) {
+    res.redirect('/login')
+  } else if (!textSuccess) {
+    res.render('error', { message: `Failed to create the text contents for:  ${textTitle}, `, title: "Text creation failed" })
+  } 
 })
 
 router.get('*', (req, res) => {

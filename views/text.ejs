@@ -7,6 +7,7 @@
         <div
           class="column is-10 is-offset-1 notification is-info is-light box container"
         >
+        <form action="/submitText" method="post">
           <div class="column">
                 <h1 class="title is-1">Text</h1>
           </div>
@@ -14,13 +15,14 @@
             <h3 class="title is-6">New Text/Paste</h3>
           </div>
           <div class="column">
-            <input class="input is-small" style="width:fit-content" name="text-title" type="text" placeholder="Text name">
+            <input class="input is-small" style="width:fit-content" name="text_title" type="text" placeholder="Text name">
           </div>
           <div class="column">
-            <textarea class="textarea" name="text-content" placeholder="Paste something!" rows="10"></textarea>
+            <textarea class="textarea" name="text_content" placeholder="Paste something!" rows="10"></textarea>
             <br>
             <button class="button is-success">Create a new text</button>
           </div>
+        </form>
           </div>
         </div>
       </div>
