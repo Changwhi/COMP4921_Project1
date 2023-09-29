@@ -405,6 +405,10 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
 });
 
 
+router.get('/showText', sessionValidation, (req, res) => {
+  res.render('text')
+})
+
 router.get('*', (req, res) => {
   res.status(404).render('error', { message: "404 No such page found." })
 })
