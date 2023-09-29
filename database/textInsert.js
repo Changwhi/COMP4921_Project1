@@ -15,10 +15,8 @@ async function createText(textData) {
 	}
 
 	try {
-		const results = await mySqlDatabase.query(createTextSQL, params);
-
+		await mySqlDatabase.query(createTextSQL, params);
         console.log("Successfully created text!!!!!!!!!!!!!!!!!!");
-		console.log(results[0]);
 		return true;
 	}
 	catch(err) {
@@ -32,18 +30,23 @@ async function createText(textData) {
 async function getText() {
 	let getTextSQL = `
 		SELECT text_title, text_content, text_UUID
-		FROM text;
+		FROM text
+        WHERE (
+		 SELECT user_id
+         FROM user
+         WHERE user_id = 1
+		);
 	`;
 
 	try {
 		const results = await mySqlDatabase.query(getTextSQL);
 
-        console.log("Successfully retrieved users");
+        console.log("Successfully retrieved text data");
 		console.log(results[0]);
 		return results[0];
 	}
 	catch(err) {
-		console.log("Error getting users");
+		console.log("Error getting text data");
         console.log(err);
 		return false;
 	}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<%- include("templates/header") %>
+    <body>
+        <div class="maincolumns columns is-desktop is-vcentered">
+            <div
+            class="column is-10 is-offset-1 notification is-info is-light box container"
+          >
+        <section>
+        <% if (locals.listOfText) { %>
+            <table>
+                <% let i=0 %>
+                    <tr>
+                        <th>Text Title</th>
+                        <th>Text Data</th>
+                    </tr>
+                    <% for(i; i < listOfText.length; i++){ %>
+                        <tr>
+                            <td>
+                                <%= listOfText[i].text_title %>
+                            </td>
+                            <td>
+                                <%= listOfText[i].text_content %>
+                            </td>
+                        </tr>
+                        <% } %>
+            </table>
+            <% } %>
+            </section>
+            </div>
+        </div>
+    </body>
+</html>
