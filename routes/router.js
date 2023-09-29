@@ -98,7 +98,7 @@ router.get("/signup", async (req, res) => {
   console.log("index page hit");
   console.log(req.query.invalid)
   var invalid = req.query.invalid === undefined ? true : req.query.invalid;
-  res.render("signup", { invalid: invalid, isLoggedIn: isLoggedIn });
+  res.render("signup", { invalid: invalid, isLoggedIn: false });
 
 });
 
