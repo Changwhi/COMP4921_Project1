@@ -428,6 +428,10 @@ router.get('/displayText', async (req, res) => {
   res.render('createdtext', {listOfText: listOfTextResult, isLoggedIn: isLoggedIn})
 })
 
+router.get('/logout', (req, res) => {
+  res.redirect('/login')
+})
+
 router.get('*', (req, res) => {
   res.status(404).render('error', { message: "404 No such page found." })
 })
