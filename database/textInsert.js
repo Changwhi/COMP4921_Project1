@@ -8,14 +8,21 @@ async function createText(textData) {
     VALUES (:text_title, :text_content, :text_uuid);
 	`;
 
+	let createUserTextLink = `
+	INSERT INTO user_text_info (user_id, text_info_id)
+	VALUES (:user_ID, LAST_INSERT_ID());
+    `;
+
 	let params = {
 		text_title: textData.title,
 		text_content: textData.content,
         text_uuid: textData.textUUID,
+		user_ID : textData.user_ID
 	}
 
 	try {
 		await mySqlDatabase.query(createTextSQL, params);
+		await mySqlDatabase.query(createUserTextLink, params);
         console.log("Successfully created text!!!!!!!!!!!!!!!!!!");
 		return true;
 	}
@@ -27,19 +34,23 @@ async function createText(textData) {
 
 }
 
-async function getText() {
+async function getText(getData) {
 	let getTextSQL = `
 		SELECT text_title, text_content, text_UUID
-		FROM text_info
-        WHERE (
-		 SELECT user_id
-         FROM user
-         WHERE user_id = 1
-		);
+		FROM user_text_info
+		JOIN user
+		ON user_text_info.user_id = user.user_id
+		JOIN text_info
+		ON user_text_info.text_info_id = text_info.text_info_id
+        WHERE user.user_id = :user_ID;
 	`;
 
+	let params = {
+		user_ID: getData.user_ID
+	}
+
 	try {
-		const results = await mySqlDatabase.query(getTextSQL);
+		const results = await mySqlDatabase.query(getTextSQL, params);
 
         console.log("Successfully retrieved text data");
 		console.log(results[0]);

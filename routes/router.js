@@ -416,9 +416,10 @@ router.get('/showText', sessionValidation, (req, res) => {
 
 router.post('/submitText', async (req,res) => {
   let textTitle = req.body.text_title
+  let user_ID = req.session.userID;
   let textContent = req.body.text_content
   let text_UUID = generateShortUUID.ShortUUID()
-  let textSuccess = db_text.createText({title: textTitle, content: textContent, textUUID: text_UUID})
+  let textSuccess = db_text.createText({user_ID: user_ID, title: textTitle, content: textContent, textUUID: text_UUID})
   if (textSuccess) {
     res.redirect('/displayText');
   } else if (!textSuccess) {
@@ -428,7 +429,9 @@ router.post('/submitText', async (req,res) => {
 
 router.get('/displayText', async (req, res) => {
   const isLoggedIn = isValidSession(req)
-  let listOfTextResult = await db_text.getText();
+  console.log(req.session.userID)
+  let user_ID = req.session.userID;
+  let listOfTextResult = await db_text.getText({user_ID: user_ID});
   res.render('createdtext', {listOfText: listOfTextResult, isLoggedIn: isLoggedIn})
 })
 
