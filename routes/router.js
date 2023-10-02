@@ -132,7 +132,7 @@ router.post("/loggingin", async (req, res) => {
       }
       else if (!isValidPassword) {
         req.session.authenticated = false;
-        res.redirect('/login');
+        res.redirect('/login?login=false');
         return;
       }
     }
@@ -236,13 +236,13 @@ router.get("/link", sessionValidation, async (req, res) => {
 router.get("/showPics", sessionValidation, async (req, res) => {
   console.log("picture page");
   try {
-    let user_id = "65024305f583fccec9aa2b99";
+    let user_id = req.session.userID;
     //req.query.id;
     console.log("userId: " + user_id);
 
     // Joi validate
     const schema = Joi.object({
-      user_id: Joi.string().alphanum().min(24).max(24).required(),
+      user_id: Joi.number().integer().min(1).max(24).required(),
     });
 
     const validationResult = schema.validate({ user_id });
@@ -253,7 +253,7 @@ router.get("/showPics", sessionValidation, async (req, res) => {
       return;
     }
     const pics = await userPicCollection
-      .find({ user_id: new ObjectId(user_id) })
+      .find({ user_id: user_id })
       .toArray();
 
     if (pics === null) {
@@ -278,10 +278,10 @@ router.post("/addpic", sessionValidation, async (req, res) => {
   try {
     console.log("form submit");
 
-    let user_id = req.body.user_id;
+    let user_id = req.session.userID;
 
     const schema = Joi.object({
-      user_id: Joi.string().alphanum().min(24).max(24).required(),
+      user_id: Joi.number().integer().min(1).max(24).required(),
       name: Joi.string().alphanum().min(2).max(50).required(),
       comment: Joi.string().alphanum().min(2).max(150).required(),
     });
@@ -301,7 +301,7 @@ router.post("/addpic", sessionValidation, async (req, res) => {
 
     await userPicCollection.insertOne({
       name: req.body.pic_name,
-      user_id: new ObjectId(user_id),
+      user_id: user_id,
       comment: req.body.comment,
     });
 
@@ -318,7 +318,7 @@ router.post("/addpic", sessionValidation, async (req, res) => {
 router.post("/setUserPic", sessionValidation, upload.single("image"), function(req, res, next) {
   let image_uuid = uuid();
   let pic_id = req.body.pic_id;
-  let user_id = req.body.user_id;
+  let user_id = req.session.userID;
   let buf64 = req.file.buffer.toString("base64");
   stream = cloudinary.uploader.upload(
     "data:image/octet-stream;base64," + buf64,
@@ -326,11 +326,12 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
       try {
 
         console.log("userId: " + user_id);
+        console.log("picID: " + pic_id);
 
         // Joi validate
         const schema = Joi.object({
           pic_id: Joi.string().alphanum().min(24).max(24).required(),
-          user_id: Joi.string().alphanum().min(24).max(24).required(),
+          user_id: Joi.number().integer().min(1).max(24).required(),
         });
 
         const validationResult = schema.validate({ pic_id, user_id });
@@ -378,29 +379,26 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
   try {
     console.log("delete pet image");
 
-    let pet_id = req.query.id;
-    let user_id = req.query.user;
+    let user_id = req.session.userID;
     let is_user_pic = req.query.pic;
-    let pic_id = req.query.id;
 
     const schema = Joi.object(
       {
-        user_id: Joi.string().alphanum().min(24).max(24).required(),
-        pet_id: Joi.string().alphanum().min(24).max(24).required(),
+        user_id: Joi.string().alphanum().min(0).max(24).required(),
       });
 
-    const validationResult = schema.validate({ user_id, pet_id });
+    const validationResult = schema.validate({ user_id });
 
     if (validationResult.error != null) {
       console.log(validationResult.error);
 
-      res.render('error', { message: 'Invalid user_id or pet_id' });
+      res.render('error', { message: 'Invalid user_id ' });
       return;
     }
 
     if (is_user_pic == 'true') {
-      console.log("pic_id: " + pet_id);
-      const success = await userPicCollection.updateOne({ "_id": new ObjectId(pic_id) },
+      console.log("pic_id: " + user_id);
+      const success = await userPicCollection.updateOne({ "_id": new ObjectId(user_id) },
         { $set: { image_id: undefined } },
         {}
       );
