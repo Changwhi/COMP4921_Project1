@@ -16,7 +16,8 @@ const db_text = include('database/textInsert');
 
 // Short UUID generator in base 64.
 const generateShortUUID = include('routes/functions/ShortUUID')
-
+const db_image = include('database/picture');
+//
 //validation
 const validationFunctions = include('routes/functions/Validation');
 //Cloudinary
@@ -122,6 +123,7 @@ router.post("/loggingin", async (req, res) => {
     if (user.email == email) {
       if (isValidPassword) {
         req.session.userID = user.user_id
+        console.log(user.user_id, "+in loggedin")
         req.session.authenticated = true;
         req.session.email = email;
         req.session.cookie.maxAge = expireTime;
@@ -301,6 +303,8 @@ router.post("/addpic", sessionValidation, async (req, res) => {
       comment: req.body.comment,
     });
 
+
+
     res.redirect(`/showPics?id=${user_id}`);
   } catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
@@ -318,7 +322,6 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
     "data:image/octet-stream;base64," + buf64,
     async function(result) {
       try {
-        console.log(result);
 
         console.log("userId: " + user_id);
 
@@ -347,7 +350,15 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
           });
           console.log("Error uploading pet image");
         } else {
-          res.redirect(`/loggedin/showPics?id=${user_id}`);
+
+          console.log("cloudinary link", result.url)
+          console.log("cloudinary link", req.session.userID)
+          let textSuccess = db_image.insertImage({ link: result.url, currentUser: req.session.userID })
+          if (!textSuccess) {
+            res.render('error', { message: `Failed to create the image contents for:  ${textTitle}, `, title: "Text creation failed" })
+          }
+
+          res.redirect(`/showPics?id=${user_id}`);
         }
       } catch (ex) {
         res.render("error", { message: "Error connecting to MongoDB" });
@@ -398,7 +409,7 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
         res.render('error', { message: 'Error connecting to MySQL' });
         return;
       }
-      res.redirect(`/loggedin/showPics`);
+      res.redirect(`/showPics`);
 
     }
   }
@@ -414,17 +425,17 @@ router.get('/showText', sessionValidation, (req, res) => {
   res.render('textForm')
 })
 
-router.post('/submitText', async (req,res) => {
+router.post('/submitText', async (req, res) => {
   let textTitle = req.body.text_title
   let user_ID = req.session.userID;
   let textContent = req.body.text_content
   let text_UUID = generateShortUUID.ShortUUID()
-  let textSuccess = db_text.createText({user_ID: user_ID, title: textTitle, content: textContent, textUUID: text_UUID})
+  let textSuccess = db_text.createText({user_ID: user_ID,  title: textTitle, content: textContent, textUUID: text_UUID })
   if (textSuccess) {
     res.redirect('/displayText');
   } else if (!textSuccess) {
     res.render('error', { message: `Failed to create the text contents for:  ${textTitle}, `, title: "Text creation failed" })
-  } 
+  }
 })
 
 router.get('/displayText', async (req, res) => {
@@ -432,8 +443,9 @@ router.get('/displayText', async (req, res) => {
   console.log(req.session.userID)
   let user_ID = req.session.userID;
   let listOfTextResult = await db_text.getText({user_ID: user_ID});
-  res.render('createdtext', {listOfText: listOfTextResult, isLoggedIn: isLoggedIn})
+  res.render('createdtext', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
 })
+
 
 router.get('/logout', (req, res) => {
   res.redirect('/login')
