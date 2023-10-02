@@ -12,7 +12,8 @@ const saltRounds = 12;
 // mySQL
 const db_users = include('database/users');
 const db_text = include('database/textInsert');
-
+const db_image = include('database/picture');
+//
 //validation
 const validationFunctions = include('routes/functions/Validation');
 //Cloudinary
@@ -297,6 +298,8 @@ router.post("/addpic", sessionValidation, async (req, res) => {
       comment: req.body.comment,
     });
 
+
+
     res.redirect(`/showPics?id=${user_id}`);
   } catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
@@ -314,7 +317,6 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
     "data:image/octet-stream;base64," + buf64,
     async function(result) {
       try {
-        console.log(result);
 
         console.log("userId: " + user_id);
 
@@ -343,7 +345,14 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
           });
           console.log("Error uploading pet image");
         } else {
-          res.redirect(`/loggedin/showPics?id=${user_id}`);
+
+          console.log("cloudinary link", result.url)
+          let textSuccess = db_image.insertImage({ link: result.url })
+          if (!textSuccess) {
+            res.render('error', { message: `Failed to create the image contents for:  ${textTitle}, `, title: "Text creation failed" })
+          }
+
+          res.redirect(`/showPics?id=${user_id}`);
         }
       } catch (ex) {
         res.render("error", { message: "Error connecting to MongoDB" });
@@ -394,7 +403,7 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
         res.render('error', { message: 'Error connecting to MySQL' });
         return;
       }
-      res.redirect(`/loggedin/showPics`);
+      res.redirect(`/showPics`);
 
     }
   }
@@ -410,23 +419,24 @@ router.get('/showText', sessionValidation, (req, res) => {
   res.render('textForm')
 })
 
-router.post('/submitText', async (req,res) => {
+router.post('/submitText', async (req, res) => {
   let textTitle = req.body.text_title
   let textContent = req.body.text_content
   let text_UUID = uuid()
-  let textSuccess = db_text.createText({title: textTitle, content: textContent, textUUID: text_UUID})
+  let textSuccess = db_text.createText({ title: textTitle, content: textContent, textUUID: text_UUID })
   if (textSuccess) {
     res.redirect('/displayText');
   } else if (!textSuccess) {
     res.render('error', { message: `Failed to create the text contents for:  ${textTitle}, `, title: "Text creation failed" })
-  } 
+  }
 })
 
 router.get('/displayText', async (req, res) => {
   const isLoggedIn = isValidSession(req)
   let listOfTextResult = await db_text.getText();
-  res.render('createdtext', {listOfText: listOfTextResult, isLoggedIn: isLoggedIn})
+  res.render('createdtext', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
 })
+
 
 router.get('/logout', (req, res) => {
   res.redirect('/login')
