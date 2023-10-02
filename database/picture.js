@@ -8,20 +8,20 @@ async function insertImage(data) {
     let uuidSQL = `select uuidGenerator()`;
     let uuid = await mySqlDatabase.query(uuidSQL);
     console.log(uuid[0][0]['uuidGenerator()'])
-    console.log(uuid)
 
+    let dateSQL = `select curdate()`
+    let date = await mySqlDatabase.query(dateSQL)
+    console.log(date)
     let insertImageSQL = `
-    INSERT INTO picture_info(link, picture_UUID)
-    VALUES (:link, :picture_UUID);
+    INSERT INTO picture_info(link, picture_UUID,created)
+    VALUES (:link, :picture_UUID,:created);
 	`;
 
     let params = {
       link: data.link,
       picture_UUID: uuid[0][0]['uuidGenerator()'],
-
+      created: date[0][0]['curdate()'],
     }
-
-
 
     await mySqlDatabase.query(insertImageSQL, params);
     console.log("Successfully created image");
