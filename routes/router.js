@@ -151,6 +151,7 @@ router.post("/submitUser", async (req, res) => {
 
   if (!validationFunctions.validatePassword(password)) {
     res.redirect('/signup?invalid=true')
+    return;
   }
   var success = await db_users.createUser({ email: email, hashedPassword: hashedPassword, name: name });
 
