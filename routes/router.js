@@ -13,6 +13,10 @@ const saltRounds = 12;
 const db_users = include('database/users');
 const db_text = include('database/textInsert');
 
+
+// Short UUID generator in base 64.
+const generateShortUUID = include('routes/functions/ShortUUID')
+
 //validation
 const validationFunctions = include('routes/functions/Validation');
 //Cloudinary
@@ -413,7 +417,7 @@ router.get('/showText', sessionValidation, (req, res) => {
 router.post('/submitText', async (req,res) => {
   let textTitle = req.body.text_title
   let textContent = req.body.text_content
-  let text_UUID = uuid()
+  let text_UUID = generateShortUUID.ShortUUID()
   let textSuccess = db_text.createText({title: textTitle, content: textContent, textUUID: text_UUID})
   if (textSuccess) {
     res.redirect('/displayText');

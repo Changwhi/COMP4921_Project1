@@ -4,7 +4,7 @@ const mySqlDatabase = include('databaseConnectionSQL');
 
 async function createText(textData) {
     let createTextSQL = `
-    INSERT INTO text (text_title, text_content, text_UUID)
+    INSERT INTO text_info (text_title, text_content, text_UUID)
     VALUES (:text_title, :text_content, :text_uuid);
 	`;
 
@@ -30,7 +30,7 @@ async function createText(textData) {
 async function getText() {
 	let getTextSQL = `
 		SELECT text_title, text_content, text_UUID
-		FROM text
+		FROM text_info
         WHERE (
 		 SELECT user_id
          FROM user
