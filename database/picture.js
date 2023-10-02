@@ -4,7 +4,6 @@ const mySqlDatabase = include('databaseConnectionSQL');
 async function insertImage(data) {
 
   try {
-
     let uuidSQL = `select uuidGenerator()`;
     let uuid = await mySqlDatabase.query(uuidSQL);
     console.log(uuid[0][0]['uuidGenerator()'])
@@ -13,14 +12,16 @@ async function insertImage(data) {
     let date = await mySqlDatabase.query(dateSQL)
     console.log(date)
     let insertImageSQL = `
-    INSERT INTO picture_info(link, picture_UUID,created)
-    VALUES (:link, :picture_UUID,:created);
+    INSERT INTO picture_info(link, picture_UUID,created,user,active)
+    VALUES (:link, :picture_UUID,:created,:user,:active);
 	`;
 
     let params = {
       link: data.link,
       picture_UUID: uuid[0][0]['uuidGenerator()'],
       created: date[0][0]['curdate()'],
+      user: data.currentUser,
+      active: 1,
     }
 
     await mySqlDatabase.query(insertImageSQL, params);

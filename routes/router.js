@@ -119,6 +119,7 @@ router.post("/loggingin", async (req, res) => {
     if (user.email == email) {
       if (isValidPassword) {
         req.session.userID = user.user_id
+        console.log(user.user_id, "+in loggedin")
         req.session.authenticated = true;
         req.session.email = email;
         req.session.cookie.maxAge = expireTime;
@@ -347,7 +348,8 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
         } else {
 
           console.log("cloudinary link", result.url)
-          let textSuccess = db_image.insertImage({ link: result.url })
+          console.log("cloudinary link", req.session.userID)
+          let textSuccess = db_image.insertImage({ link: result.url, currentUser: req.session.userID })
           if (!textSuccess) {
             res.render('error', { message: `Failed to create the image contents for:  ${textTitle}, `, title: "Text creation failed" })
           }
