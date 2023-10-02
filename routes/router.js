@@ -102,7 +102,7 @@ router.get("/login", async (req, res) => {
 router.get("/signup", async (req, res) => {
   console.log("index page hit");
   console.log(req.query.invalid)
-  var invalid = req.query.invalid === undefined ? true : req.query.invalid;
+  var invalid = req.query.invalid === undefined ? false : req.query.invalid;
   res.render("signup", { invalid: invalid, isLoggedIn: false });
 
 });
@@ -149,8 +149,10 @@ router.post("/submitUser", async (req, res) => {
   var name = req.body.name;
   var hashedPassword = bcrypt.hashSync(password, saltRounds);
 
+  console.log(password, "Password???")
   if (!validationFunctions.validatePassword(password)) {
     res.redirect('/signup?invalid=true')
+    return
   }
   var success = await db_users.createUser({ email: email, hashedPassword: hashedPassword, name: name });
 
@@ -430,7 +432,7 @@ router.post('/submitText', async (req, res) => {
   let user_ID = req.session.userID;
   let textContent = req.body.text_content
   let text_UUID = generateShortUUID.ShortUUID()
-  let textSuccess = db_text.createText({user_ID: user_ID,  title: textTitle, content: textContent, textUUID: text_UUID })
+  let textSuccess = db_text.createText({ user_ID: user_ID, title: textTitle, content: textContent, textUUID: text_UUID })
   if (textSuccess) {
     res.redirect('/displayText');
   } else if (!textSuccess) {
@@ -442,7 +444,7 @@ router.get('/displayText', async (req, res) => {
   const isLoggedIn = isValidSession(req)
   console.log(req.session.userID)
   let user_ID = req.session.userID;
-  let listOfTextResult = await db_text.getText({user_ID: user_ID});
+  let listOfTextResult = await db_text.getText({ user_ID: user_ID });
   res.render('createdtext', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
 })
 

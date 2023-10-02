@@ -1,4 +1,5 @@
 function validatePassword(password) {
+  console.log("validatePassword hit")
   // Password should be at least 10 characters long
   if (password.length < 10) {
     return false;
@@ -29,5 +30,4 @@ function validatePassword(password) {
 }
 
 
-
-module.exports = {validatePassword}
+module.exports = { validatePassword }
