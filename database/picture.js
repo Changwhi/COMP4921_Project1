@@ -111,5 +111,24 @@ async function getImage(user_id) {
   }
 }
 
-module.exports = { insertImage, getImage, addColumn, getColumn }
+async function deleteImage(data) {
+  try {
+    let deleteImageSQL = `
+      DELETE FROM picture_info
+      WHERE picture_UUID = ?;
+    `;
+    let params = [data.picture_UUID];
+    await mySqlDatabase.query(deleteImageSQL, params);
+    console.log("Successfully deleted image");
+    return true;
+  } catch (err) {
+    console.log("Error deleting image");
+    console.log(err);
+    return false;
+  }
+}
+
+
+
+module.exports = { insertImage, getImage, addColumn, getColumn, deleteImage }
 

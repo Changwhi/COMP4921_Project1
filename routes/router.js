@@ -377,41 +377,34 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
 
 router.get('/deletePics', sessionValidation, async (req, res) => {
   try {
-    console.log("delete pet image");
-
+    console.log("delete image");
     let user_id = req.session.userID;
-    let is_user_pic = req.query.pic;
-
+    let picture_UUID = req.query.picture_UUID;
+    console.log(picture_UUID)
     const schema = Joi.object(
       {
         user_id: Joi.number().integer().min(1).max(24).required(),
       });
-
     const validationResult = schema.validate({ user_id });
-
     if (validationResult.error != null) {
       console.log(validationResult.error);
-
       res.render('error', { message: 'Invalid user_id ' });
       return;
     }
 
-    if (is_user_pic == 'true') {
-      console.log("pic_id: " + user_id);
-      const success = await userPicCollection.updateOne({ "_id": new ObjectId(user_id) },
-        { $set: { image_id: undefined } },
-        {}
-      );
+    const success = await userPicCollection.updateOne({ "_id": new ObjectId(user_id) },
+      { $set: { image_id: undefined } },
+      {}
+    );
 
-      console.log("delete User Image: ");
-      console.log(success);
-      if (!success) {
-        res.render('error', { message: 'Error connecting to MySQL' });
-        return;
-      }
-      res.redirect(`/showPics`);
-
+    console.log("delete User Image: ");
+    let responseData = await db_image.deleteImage({ picture_UUID: picture_UUID })
+    if (!responseData) {
+      res.render('error', { message: `Failed to delete the image` })
     }
+
+
+    res.redirect(`/showPics`);
   }
   catch (ex) {
     res.render('error', { message: 'Error connecting to MySQL' });

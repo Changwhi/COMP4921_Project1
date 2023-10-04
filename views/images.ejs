@@ -78,10 +78,10 @@
                               </form>
                               <% } %>
                             </td>
-                            <% if (allPics[i].image_id) { %>
+                            <% if (allPics[i]['public_id']) { %>
                               <td>
                                 <a
-                                  href="/deletePics?id=<%= allPics[i].pic_id %>&user=<%= allPics[i].user_id %>&pic=<%=true%>">
+                                  href="/deletePics?id=<%= allPics[i]['public_id']%>&picture_UUID=<%= allPics[i]['picture_UUID']%>&pic=<%=true%>">
                                   <span class="icon is-small">
                                     <i class="fas fa-eraser"></i> </span></a>
                               </td>
