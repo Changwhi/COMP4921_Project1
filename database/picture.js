@@ -81,31 +81,17 @@ async function getColumn(data) {
   }
 }
 
-async function getImage(user_id) {
-  let getImageSQL = `
-		SELECT picture_id,link, picture_UUID
-		FROMpicture_info
-        WHERE (
-		 SELECT user_id
-         FROM user
-         WHERE user_id = currentUser
-		)
-    value (:currentUser)
-	`;
-
-  let params = {
-    currentUser: user_id,
-  }
-
+async function getImage(data) {
   try {
-    const results = await mySqlDatabase.query(getImageSQL, params);
-
-    console.log("Successfully retrieved image data");
-    console.log(results[0]);
-    return results[0];
+    let insertImageSQL = `
+    SELECT * from picture_info where picture_UUID= ?`;
+    let params = [data.picture_UUID]
+    let responseData = await mySqlDatabase.query(insertImageSQL, params);
+    console.log("Successfully retrieved column");
+    return responseData;
   }
   catch (err) {
-    console.log("Error getting image data");
+    console.log("Error retrieving column");
     console.log(err);
     return false;
   }

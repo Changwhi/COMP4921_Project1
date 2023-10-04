@@ -23,9 +23,10 @@
                   <table class="table is-bordered is-hoverable is-striped is-fullwidth">
                     <thead>
                       <tr>
-                        <th>User Name</th>
-                        <th>&nbsp;</th>
-                        <th>&nbsp;</th>
+                        <th>Picture Name</th>
+                        <th>Picture</th>
+                        <th>Remove</th>
+                        <th>URL</th>
                       </tr>
                     </thead>
                     <% let i=0; %>
@@ -35,7 +36,7 @@
                             <%= allPics[i]['name'] %>
                           </td>
                           <% if (allPics[i]['public_id']) { %>
-                            <td>
+                            <td colspan="1">
                               <script type="text/javascript">
                                 document.write(
                                   $.cloudinary
@@ -50,7 +51,7 @@
                               <% } else { %>
                             </td>
 
-                            <td colspan="2">
+                            <td colspan="1">
                               <form action="/setUserPic" method="post" enctype="multipart/form-data">
                                 <div class="field is-horizontal">
                                   <input type="hidden" name="pic_id" value="<%= allPics[i]['picture_UUID']%>" />
@@ -78,19 +79,21 @@
                               </form>
                               <% } %>
                             </td>
-                            <% if (allPics[i]['public_id']) { %>
-                              <td>
-                                <a
-                                  href="/deletePics?id=<%= allPics[i]['public_id']%>&picture_UUID=<%= allPics[i]['picture_UUID']%>&pic=<%=true%>">
-                                  <span class="icon is-small">
-                                    <i class="fas fa-eraser"></i> </span></a>
-                              </td>
-                              <% } %>
+                            <td>
+                              <a
+                                href="/deletePics?id=<%= allPics[i]['public_id']%>&picture_UUID=<%= allPics[i]['picture_UUID']%>&pic=<%=true%>">
+                                <span class="icon is-small">
+                                  <i class="fas fa-eraser"></i> </span></a>
+                            </td>
+                            <td>
+                              <a href="/displayImage?uuid=<%= allPics[i]['picture_UUID'] %>">
+                                Click: <%= allPics[i]['picture_UUID']%></a>
+                            </td>
                         </tr>
                         <% } %>
                           <tfoot>
                             <tr>
-                              <td colspan="3">There are <%= i %> pictures.</td>
+                              <td colspan="4">There are <%= i %> pictures.</td>
                             </tr>
                           </tfoot>
                   </table>
@@ -107,7 +110,7 @@
                 <div class="field-body">
                   <div class="field">
                     <p class="control is-expanded">
-                      <input name="pic_name" class="input" type="text" placeholder="User Name" />
+                      <input name="pic_name" class="input" type="text" placeholder="Picture Name" />
                     </p>
                   </div>
                   <div class="field">

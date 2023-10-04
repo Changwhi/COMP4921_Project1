@@ -198,40 +198,36 @@ router.get("/pic", async (req, res) => {
   );
 });
 
-// router.post("/picUpload", upload.single("image"), function(req, res, next) {
-//   let buf64 = req.file.buffer.toString("base64");
-//   stream = cloudinary.uploader.upload(
-//     "data:image/png;base64," + buf64,
-//     function(result) {
-//       //_stream
-//       console.log(result);
-//       res.send(
-//         'Done:<br/> <img src="' +
-//         result.url +
-//         '"/><br/>' +
-//         cloudinary.image(result.public_id, {
-//           format: "png",
-//           width: 100,
-//           height: 130,
-//           crop: "fit",
-//         })
-//       );
-//     },
-//     { public_id: req.body.title }
-//   );
-//   console.log(req.body);
-//   console.log(req.file);
-// });
-//
-// function sleep(ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
-//
 router.get("/link", sessionValidation, async (req, res) => {
   console.log("link page hit");
   res.render("links");
 });
 
+router.get("/displayImage", async (req, res) => {
+  console.log("dispalyImage page");
+  try {
+    let user_id = req.session.userID;
+    let picture_UUID = req.query.uuid;
+    let responseData = await db_image.getImage({ picture_UUID: picture_UUID })
+    if (!responseData) {
+      res.render('error', { message: `Failed to retrieve columns, ` })
+    }
+    const picture = responseData[0].filter(pic => pic.picture_UUID === picture_UUID);
+    console.log("whats the picture", picture)
+    if (req.session.authenticated) {
+      var isLoggedIn = true;
+    } else {
+      var isLoggedIn = false;
+    }
+
+    res.render('displayImage', { allPics: picture, user_id: user_id, isLoggedIn: isLoggedIn });
+
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MongoDB" });
+    console.log("Error connecting to MongoDB");
+    console.log(ex);
+  }
+});
 
 router.get("/showPics", sessionValidation, async (req, res) => {
   console.log("picture page");
@@ -252,21 +248,6 @@ router.get("/showPics", sessionValidation, async (req, res) => {
       res.render("error", { message: "Invalid user_id" });
       return;
     }
-    // const pics = await userPicCollection
-    //   .find({ user_id: user_id })
-    //   .toArray();
-    //
-    // if (pics === null) {
-    //   res.render("error", { message: "Error connecting to MongoDB" });
-    //   console.log("Error connecting to userModel");
-    // } else {
-    //   pics.map((item) => {
-    //     item.pic_id = item._id;
-    //     return item;
-    //   });
-    //   console.log(pics);
-    //   res.render("images", { allPics: pics, user_id: user_id });
-    // }
     console.log("Retrieving column and ", req.session.userID)
     let responseData = await db_image.getColumn({ user_id: user_id })
     console.log("in show pices", responseData[0])
@@ -325,13 +306,9 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
     "data:image/octet-stream;base64," + buf64,
     async function(result) {
       try {
-
         console.log("userId: " + user_id);
         console.log("pcitureUUID: " + picture_UUID);
-
-        // Joi validate
         const schema = Joi.object({
-          // pic_id: Joi.string().alphanum().min(24).max(24).required(),
           user_id: Joi.number().integer().min(1).max(24).required(),
         });
 
@@ -342,18 +319,6 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
           res.render("error", { message: "Invalid pet_id or user_id" });
           return;
         }
-        // const success = await userPicCollection.updateOne(
-        //   { _id: new ObjectId(pic_id) },
-        //   { $set: { image_id: image_uuid } },
-        //   {}
-        // );
-
-        // if (!success) {
-        //   res.render("error", {
-        //     message: "Error uploading pet image to MongoDB",
-        //   });
-        //   console.log("Error uploading pet image");
-        // } else {
 
         console.log("cloudinary link", result.url)
         console.log("cloudinary link", result.public_id)
@@ -392,17 +357,11 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
       return;
     }
 
-    const success = await userPicCollection.updateOne({ "_id": new ObjectId(user_id) },
-      { $set: { image_id: undefined } },
-      {}
-    );
-
     console.log("delete User Image: ");
     let responseData = await db_image.deleteImage({ picture_UUID: picture_UUID })
     if (!responseData) {
       res.render('error', { message: `Failed to delete the image` })
     }
-
 
     res.redirect(`/showPics`);
   }
