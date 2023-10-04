@@ -87,14 +87,12 @@ function setLoginStatus(req, res, next) {
 router.get("/", async (req, res) => {
   console.log("index page hit");
   const isLoggedIn = isValidSession(req)
-  console.log(isLoggedIn)
   res.render("index", { isLoggedIn: isLoggedIn });
 });
 
 
 
 router.get("/login", async (req, res) => {
-  console.log("index page hit");
   const isLoggedIn = isValidSession(req)
   res.render("login", { isLoggedIn: isLoggedIn });
 
@@ -102,6 +100,7 @@ router.get("/login", async (req, res) => {
 
 router.get('/logout', (req, res) => {
   console.log("Logging out")
+  req.session.destroy();
   res.redirect('/login')
   return;
 })
@@ -430,13 +429,18 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
 });
 
 
-
-
-router.get('/showTextForUser', sessionValidation, async (req, res) => {
+router.get('/showTextForUser', async (req, res) => {
   const isLoggedIn = isValidSession(req)
-  let user_ID = req.session.userID;
-  let listOfTextResult = await db_text.getText({user_ID: user_ID});
-  res.render('textForm', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
+  if (isLoggedIn) {
+    let user_ID = req.session.userID;
+    let listOfTextResult = await db_text.getText({user_ID: user_ID});
+    res.render('textForm', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
+  } else { 
+    let listOfTextResultForPublic = await db_text.getTextForPublic();
+    if (listOfTextResultForPublic) {
+      res.render('showTextToPublic', { textContents: listOfTextResultForPublic, isLoggedIn: false})
+    }
+  }
 })
 
 router.post('/submitText', async (req, res) => {
@@ -456,8 +460,19 @@ router.post('/submitText', async (req, res) => {
 router.get('/:text_UUID', async (req, res) => {
   const isLoggedIn = isValidSession(req) 
   let queryParamID = req.params.text_UUID;
-  let textContents = await db_text.getTextContent({text_uuid: queryParamID});
-  res.render('createdText', {textContents: textContents, isLoggedIn: isLoggedIn})
+  let selectedText;
+  if (isLoggedIn) { 
+    let textContents = await db_text.getTextContent({text_uuid: queryParamID});
+    res.render('createdText', {textContents: textContents, isLoggedIn: isLoggedIn})
+  } else {
+    let textContentsForPublic = await db_text.getTextForPublic({text_uuid: queryParamID})
+    for (i= 0; i < textContentsForPublic.length; i++ ) {
+      if (textContentsForPublic[i].text_UUID === queryParamID){
+          selectedText = textContentsForPublic[i];
+      }
+    }
+    res.render('createdTextForPublic', {textContents: selectedText, isLoggedIn: false})
+  }
 })
 
 router.post('/editText', async (req, res) => { 

@@ -63,6 +63,26 @@ async function getText(getData) {
 	}
 }
 
+async function getTextForPublic(getData) {
+	let getTextSQLForPublic  = `
+		SELECT *
+		FROM text_info;
+	`;
+
+	try {
+		const results = await mySqlDatabase.query(getTextSQLForPublic);
+
+        console.log("Successfully retrieved public text data");
+		console.log(results[0]);
+		return results[0];
+	}
+	catch(err) {
+		console.log("Error getting public text data");
+        console.log(err);
+		return false;
+	}
+}
+
 
 async function getTextContent(getData) {
 	let getTextContentSQL = `
@@ -93,6 +113,29 @@ async function getTextContent(getData) {
 	}
 }
 
+async function getTextContentForPublic(getData) { 
+	let getTextContentForPublic = `
+	SELECT text_content, text_title, text_UUID
+	FROM text_info
+	WHERE text_UUID = :text_UUID;
+	`
+	let params = {
+		text_UUID: getData.text_uuid
+	}
+	try {
+		const results = await mySqlDatabase.query(getTextContentForPublic, params);
+
+        console.log("Successfully retrieved public text content data");
+		console.log(results[0]);
+		return results[0];
+	}
+	catch(err) {
+		console.log("Error getting public text content data");
+        console.log(err);
+		return false;
+	}
+}
+
 
 async function updateText(textData) {
     let updateTextSQL = `
@@ -114,8 +157,8 @@ async function updateText(textData) {
         console.log(err);
 		return false;
 	}
-
 }
 
 
-module.exports = {createText, getText, getTextContent, updateText}
+
+module.exports = {createText, getText, getTextContent, updateText, getTextForPublic, getTextContentForPublic}
