@@ -99,6 +99,13 @@ router.get("/login", async (req, res) => {
   res.render("login", { isLoggedIn: isLoggedIn });
 
 });
+
+router.get('/logout', (req, res) => {
+  console.log("Logging out")
+  res.redirect('/login')
+  return;
+})
+
 router.get("/signup", async (req, res) => {
   console.log("index page hit");
   console.log(req.query.invalid)
@@ -157,6 +164,7 @@ router.post("/submitUser", async (req, res) => {
 
   if (success) {
     res.redirect('/login')
+    return;
   } else if (!success) {
     res.render('error', { message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" })
   }
@@ -422,8 +430,13 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
 });
 
 
-router.get('/showText', sessionValidation, (req, res) => {
-  res.render('textForm')
+
+
+router.get('/showTextForUser', sessionValidation, async (req, res) => {
+  const isLoggedIn = isValidSession(req)
+  let user_ID = req.session.userID;
+  let listOfTextResult = await db_text.getText({user_ID: user_ID});
+  res.render('textForm', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
 })
 
 router.post('/submitText', async (req, res) => {
@@ -433,24 +446,34 @@ router.post('/submitText', async (req, res) => {
   let text_UUID = generateShortUUID.ShortUUID()
   let textSuccess = db_text.createText({user_ID: user_ID,  title: textTitle, content: textContent, textUUID: text_UUID })
   if (textSuccess) {
-    res.redirect('/displayText');
+    res.redirect('/showTextForUser');
+    return;
   } else if (!textSuccess) {
     res.render('error', { message: `Failed to create the text contents for:  ${textTitle}, `, title: "Text creation failed" })
   }
 })
 
-router.get('/displayText', async (req, res) => {
-  const isLoggedIn = isValidSession(req)
-  console.log(req.session.userID)
-  let user_ID = req.session.userID;
-  let listOfTextResult = await db_text.getText({user_ID: user_ID});
-  res.render('createdtext', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
+router.get('/:text_UUID', async (req, res) => {
+  const isLoggedIn = isValidSession(req) 
+  let queryParamID = req.params.text_UUID;
+  let textContents = await db_text.getTextContent({text_uuid: queryParamID});
+  res.render('createdText', {textContents: textContents, isLoggedIn: isLoggedIn})
 })
 
+router.post('/editText', async (req, res) => { 
+  const isLoggedIn = isValidSession(req) 
+  let editedTextContent = req.body.new_text_content;
+  let text_UUID = req.body.text_uuid;
+  let textUpdateSuccess = await db_text.updateText({editedTextContent: editedTextContent, textUUID: text_UUID})
+  if (textUpdateSuccess) {
+    let textContents = await db_text.getTextContent({text_uuid: text_UUID});
+    res.render('createdText' ,{textContents: textContents, isLoggedIn: isLoggedIn})
+  } else if (!textUpdateSuccess) {
+    res.render('error', { message: `Failed to update the text contents for:  ${textTitle}, `, title: "Text update failed" })
+  }
+});
 
-router.get('/logout', (req, res) => {
-  res.redirect('/login')
-})
+
 
 router.get('*', (req, res) => {
   res.status(404).render('error', { message: "404 No such page found." })
