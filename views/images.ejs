@@ -32,14 +32,14 @@
                       <% for(i=0; i < allPics.length; i++) { %>
                         <tr>
                           <td>
-                            <%= allPics[i].name %>
+                            <%= allPics[i]['name'] %>
                           </td>
-                          <% if (allPics[i].image_id) { %>
+                          <% if (allPics[i]['public_id']) { %>
                             <td>
                               <script type="text/javascript">
                                 document.write(
                                   $.cloudinary
-                                    .imageTag("<%- allPics[i].image_id %>", {
+                                    .imageTag("<%- allPics[i]['public_id']%>", {
                                       height: 100,
                                       width: 100,
                                       crop: "fit",
@@ -53,8 +53,8 @@
                             <td colspan="2">
                               <form action="/setUserPic" method="post" enctype="multipart/form-data">
                                 <div class="field is-horizontal">
-                                  <input type="hidden" name="pic_id" value="<%= allPics[i].pic_id %>" />
-                                  <input type="hidden" name="user_id" value="<%= allPics[i].user_id %>" />
+                                  <input type="hidden" name="pic_id" value="<%= allPics[i]['picture_UUID']%>" />
+                                  <input type="hidden" name="user_id" value="<%= allPics[i]['user_id']%>" />
                                   <div id="picture-upload" class="file is-info has-name is-small is-right">
                                     <label class="file-label">
                                       <input class="file-input" type="file" name="image" />

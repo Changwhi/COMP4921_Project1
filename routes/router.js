@@ -252,21 +252,29 @@ router.get("/showPics", sessionValidation, async (req, res) => {
       res.render("error", { message: "Invalid user_id" });
       return;
     }
-    const pics = await userPicCollection
-      .find({ user_id: user_id })
-      .toArray();
-
-    if (pics === null) {
-      res.render("error", { message: "Error connecting to MongoDB" });
-      console.log("Error connecting to userModel");
-    } else {
-      pics.map((item) => {
-        item.pic_id = item._id;
-        return item;
-      });
-      console.log(pics);
-      res.render("images", { allPics: pics, user_id: user_id });
+    // const pics = await userPicCollection
+    //   .find({ user_id: user_id })
+    //   .toArray();
+    //
+    // if (pics === null) {
+    //   res.render("error", { message: "Error connecting to MongoDB" });
+    //   console.log("Error connecting to userModel");
+    // } else {
+    //   pics.map((item) => {
+    //     item.pic_id = item._id;
+    //     return item;
+    //   });
+    //   console.log(pics);
+    //   res.render("images", { allPics: pics, user_id: user_id });
+    // }
+    console.log("Retrieving column and ", req.session.userID)
+    let responseData = await db_image.getColumn({ user_id: user_id })
+    console.log("in show pices", responseData[0])
+    if (!responseData) {
+      res.render('error', { message: `Failed to retrieve columns, ` })
     }
+    res.render('images', { allPics: responseData[0], user_id: user_id });
+
   } catch (ex) {
     res.render("error", { message: "Error connecting to MongoDB" });
     console.log("Error connecting to MongoDB");
@@ -276,37 +284,31 @@ router.get("/showPics", sessionValidation, async (req, res) => {
 
 router.post("/addpic", sessionValidation, async (req, res) => {
   try {
-    console.log("form submit");
+    console.log("addpic form submit");
 
     let user_id = req.session.userID;
 
     const schema = Joi.object({
       user_id: Joi.number().integer().min(1).max(24).required(),
       name: Joi.string().alphanum().min(2).max(50).required(),
-      comment: Joi.string().alphanum().min(2).max(150).required(),
+      comment: Joi.string().alphanum().min(0).max(150).required(),
     });
-
     const validationResult = schema.validate({
       user_id,
       name: req.body.pic_name,
       comment: req.body.comment,
     });
-
     if (validationResult.error != null) {
       console.log(validationResult.error);
-
       res.render("error", { message: "Invalid first_name, last_name, email" });
       return;
     }
 
-    await userPicCollection.insertOne({
-      name: req.body.pic_name,
-      user_id: user_id,
-      comment: req.body.comment,
-    });
-
-
-
+    console.log("addColumn and ", req.session.userID)
+    let responseData = await db_image.addColumn({ name: req.body.pic_name, user_id: user_id, comment: req.body.comment })
+    if (!responseData) {
+      res.render('error', { message: `Failed to create the image contents for:  ${req.body.pic_name}, `, title: "Adding Picture column failed" })
+    }
     res.redirect(`/showPics?id=${user_id}`);
   } catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
@@ -316,8 +318,7 @@ router.post("/addpic", sessionValidation, async (req, res) => {
 });
 
 router.post("/setUserPic", sessionValidation, upload.single("image"), function(req, res, next) {
-  let image_uuid = uuid();
-  let pic_id = req.body.pic_id;
+  let picture_UUID = req.body.pic_id;
   let user_id = req.session.userID;
   let buf64 = req.file.buffer.toString("base64");
   stream = cloudinary.uploader.upload(
@@ -326,50 +327,49 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
       try {
 
         console.log("userId: " + user_id);
-        console.log("picID: " + pic_id);
+        console.log("pcitureUUID: " + picture_UUID);
 
         // Joi validate
         const schema = Joi.object({
-          pic_id: Joi.string().alphanum().min(24).max(24).required(),
+          // pic_id: Joi.string().alphanum().min(24).max(24).required(),
           user_id: Joi.number().integer().min(1).max(24).required(),
         });
 
-        const validationResult = schema.validate({ pic_id, user_id });
+        const validationResult = schema.validate({ user_id });
         if (validationResult.error != null) {
           console.log(validationResult.error);
 
           res.render("error", { message: "Invalid pet_id or user_id" });
           return;
         }
-        const success = await userPicCollection.updateOne(
-          { _id: new ObjectId(pic_id) },
-          { $set: { image_id: image_uuid } },
-          {}
-        );
+        // const success = await userPicCollection.updateOne(
+        //   { _id: new ObjectId(pic_id) },
+        //   { $set: { image_id: image_uuid } },
+        //   {}
+        // );
 
-        if (!success) {
-          res.render("error", {
-            message: "Error uploading pet image to MongoDB",
-          });
-          console.log("Error uploading pet image");
-        } else {
+        // if (!success) {
+        //   res.render("error", {
+        //     message: "Error uploading pet image to MongoDB",
+        //   });
+        //   console.log("Error uploading pet image");
+        // } else {
 
-          console.log("cloudinary link", result.url)
-          console.log("cloudinary link", req.session.userID)
-          let textSuccess = db_image.insertImage({ link: result.url, currentUser: req.session.userID })
-          if (!textSuccess) {
-            res.render('error', { message: `Failed to create the image contents for:  ${textTitle}, `, title: "Text creation failed" })
-          }
-
-          res.redirect(`/showPics?id=${user_id}`);
+        console.log("cloudinary link", result.url)
+        console.log("cloudinary link", result.public_id)
+        console.log("cloudinary link", req.session.userID)
+        let responseData = await db_image.insertImage({ link: result.url, public_id: result.public_id, picture_UUID: picture_UUID })
+        if (!responseData) {
+          res.render('error', { message: `Failed to create the image contents for` })
         }
+        res.redirect(`/showPics?id=${user_id}`);
+        // }
       } catch (ex) {
         res.render("error", { message: "Error connecting to MongoDB" });
         console.log("Error connecting to MongoDB");
         console.log(ex);
       }
     },
-    { public_id: image_uuid }
   );
   console.log(req.body);
   console.log(req.file);
@@ -384,7 +384,7 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
 
     const schema = Joi.object(
       {
-        user_id: Joi.string().alphanum().min(0).max(24).required(),
+        user_id: Joi.number().integer().min(1).max(24).required(),
       });
 
     const validationResult = schema.validate({ user_id });
