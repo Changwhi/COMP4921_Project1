@@ -641,7 +641,7 @@ router.get('/:text_UUID', async (req, res) => {
       }
     }
     console.log("Created Text??")
-    res.render('createdText', { textContents: selectedText, isLoggedIn: isLoggedIn })
+    res.render('viewOwnText', { textContents: selectedText, isLoggedIn: isLoggedIn })
   } else {
     let textContentsForPublic = await db_text.getTextForPublic({ text_uuid: queryParamID })
     for (i = 0; i < textContentsForPublic.length; i++) {
@@ -660,7 +660,7 @@ router.post('/editText', async (req, res) => {
   let textUpdateSuccess = await db_text.updateText({ editedTextContent: editedTextContent, textUUID: text_UUID })
   if (textUpdateSuccess) {
     let textContents = await db_text.getTextContent({ text_uuid: text_UUID });
-    res.render('createdText', { textContents: textContents, isLoggedIn: isLoggedIn })
+    res.render('viewOwnText', { textContents: textContents, isLoggedIn: isLoggedIn })
   } else if (!textUpdateSuccess) {
     res.render('error', { message: `Failed to update the text contents for:  ${textTitle}, `, title: "Text update failed" })
   }
