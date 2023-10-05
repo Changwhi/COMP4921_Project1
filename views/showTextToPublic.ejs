@@ -4,7 +4,7 @@
 
 <body>
     <div class="maincolumns columns is-desktop is-vcentered">
-        <div class="column is-9 is-offset-1 notification is-info is-light box container">
+        <div class="column is-10 is-offset-1 notification container" style="background-color: turquoise; border-radius: 25px;">
             <div class="column">
                 <h3 class="title is-6">Public Text/Pastes</h3>
               </div>
@@ -26,7 +26,7 @@
                             <a href="/<%=textContents[i].text_UUID %>">http://localhost:3000/<%= textContents[i].text_UUID %></a>
                         </td>
                         <td style="padding-bottom: 5px;">
-                            <button class="button is-link" data-link="http://localhost:3000/<%= textContents[i].text_UUID %>" onclick="copyToClipboard(this)">Copy Link</button>
+                            <button class="button is-dark" data-link="http://localhost:3000/<%= textContents[i].text_UUID %>" onclick="copyToClipboard(this)">Copy Link</button>
                         </td>
                     </tr>
                     <% } %>
