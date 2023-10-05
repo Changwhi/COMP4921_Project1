@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<%- include("templates/header") %>
+
+  <body>
+    <section class="section">
+      <div class="maincolumns columns is-desktop is-vcentered">
+        <div class="column is-10 is-offset-1 notification is-info is-light box container">
+          <div class="column">
+            <h1 class="title is-1">Links</h1>
+          </div>
+
+          <% if (locals.url) { %>
+            <div class="column">
+              <div class="columns is-centered">
+                <p>You will be redirected to:</p>
+                <a href="<%= url %>">
+                  <%= url %>
+                </a>
+              </div>
+              <div class="column is-centered">
+                <p>Redirecting in 5 seconds...</p>
+                <script>
+                  // Use JavaScript to redirect after 5 seconds
+                  setTimeout(function () {
+                    window.location.href = "<%= url %>";
+                  }, 5000); // 5000 milliseconds (5 seconds)
+                </script>
+              </div>
+            </div>
+            <% } %>
+
+
+              <div class="column is-centered">
+                <form action="/" method="post">
+                  <input type="hidden" name="user_id" value="<%= %>" />
+                  <div class="field is-horizontal">
+
+                    <div class="field-body">
+                      <div class="field">
+                        <button class="button is-link">
+                          <span>Go to DATABASE TEAM5 Website</span>
+                          <span class="icon is-small">
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+        </div>
+      </div>
+      </div>
+    </section>
+  </body>
+
+</html>
