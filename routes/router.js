@@ -102,11 +102,17 @@ router.get("/login", async (req, res) => {
 });
 
 router.get('/logout', (req, res) => {
-  console.log("Logging out")
-  req.session.destroy();
-  res.redirect('/login')
-  return;
-})
+  console.log("Logging out");
+  
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Error destroying session:', err);
+      return res.status(500).send('Failed to log out');
+    }
+    
+    res.redirect('/login');
+  });
+});
 
 router.get("/signup", async (req, res) => {
   console.log(req.query.invalid)
@@ -115,60 +121,59 @@ router.get("/signup", async (req, res) => {
 
 });
 
+
 router.post("/loggingin", async (req, res) => {
+  const passwordSchema = Joi.string().pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$')).required();
   var email = req.body.email;
   var password = req.body.password;
   var users = await db_users.getUsers();
   let user;
-  for (i = 0; i < users.length; i++) {
+  
+  for (let i = 0; i < users.length; i++) {
     if (users[i].email == email) {
       user = users[i];
+      break;
     }
   }
+
   if (user === undefined) {
-    res.render('login', { message: "Why did you enter the wrong email?!", isLoggedIn: false })
-  } else {
-    const validationResult = passwordSchema.validate({ password });
-    if (validationResult) {
-      for (i = 0; i < users.length; i++) {
-        const isValidPassword = bcrypt.compareSync(password, user.hashed_password)
-        if (user.email == email) {
-          if (isValidPassword) {
-            req.session.userID = user.user_id
-            console.log(user.user_id, "+in loggedin")
-            req.session.authenticated = true;
-            req.session.email = email;
-            req.session.cookie.maxAge = expireTime;
-            res.render('index', { isLoggedIn: isValidSession });
-            return
-          }
-          else if (!isValidPassword) {
-            req.session.authenticated = false;
-            res.redirect('/login');
-            return;
-          }
-        }
-      }
-      //User & PW combo not found.
-      res.render("login", { message: null, isLoggedIn: false });
+    res.render('login', { message: "Why did you enter the wrong email?!", isLoggedIn: false });
+    return;
+  } 
+
+  const validationResult = passwordSchema.validate(password);
+
+  if (validationResult.error) {
+    let errorMsg = validationResult.error.details[0].message;
+    
+    if (errorMsg.includes("(?=.*[a-z])")) {
+      errorMsg = "Password must have at least 1 lowercase.";
+    } else if (errorMsg.includes("(?=.*[A-Z])")) {
+      errorMsg = "Password must have at least 1 uppercase.";
+    } else if (errorMsg.includes("(?=.*[!@#$%^&*])")) {
+      errorMsg = "Password requires 1 special character.";
+    } else if (errorMsg.includes("(?=.*[0-9])")) {
+      errorMsg = "Password needs to have 1 number.";
     } else {
-      let errorMsg = validationResult.error.details[0].message
-      if (errorMsg.includes("(?=.*[a-z])")) {
-        errorMsg = "Password must have at least 1 lowercase."
-      } else if (errorMsg.includes("(?=.*[A-Z])")) {
-        errorMsg = "Password must have at least 1 uppercase."
-      } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
-        errorMsg = "Password requires 1 special character."
-      } else if (errorMsg.includes("(?=.*[0-9])")) {
-        errorMsg = "Password needs to have 1 number."
-      } else {
-        errorMsg = null;
-      }
-      if (validationResult.error != null) {
-        res.render("login", { message: errorMsg, isLoggedIn: false });
-        return;
-      }
+      errorMsg = null;
     }
+
+    res.render("login", { message: errorMsg, isLoggedIn: false });
+    return;
+  }
+
+  const isValidPassword = bcrypt.compareSync(password, user.hashed_password);
+
+  if (isValidPassword) {
+    req.session.userID = user.user_id;
+    console.log(user.user_id, "+in loggedin");
+    req.session.authenticated = true;
+    req.session.email = email;
+    req.session.cookie.maxAge = expireTime;
+    res.render('index', { isLoggedIn: true });
+  } else {
+    req.session.authenticated = false;
+    res.redirect('/login');
   }
 });
 //** CREATING THE USER SECTION */
@@ -284,7 +289,7 @@ router.get("/showPics", sessionValidation, async (req, res) => {
 
     // Joi validate
     const schema = Joi.object({
-      user_id: Joi.number().integer().min(1).max(24).required(),
+      user_id: Joi.number().integer().min(1).required(),
     });
 
     const validationResult = schema.validate({ user_id });
@@ -316,7 +321,7 @@ router.post("/addpic", sessionValidation, async (req, res) => {
     let user_id = req.session.userID;
 
     const schema = Joi.object({
-      user_id: Joi.number().integer().min(1).max(24).required(),
+      user_id: Joi.number().integer().min(1).required(),
       name: Joi.string().alphanum().min(2).max(50).required(),
       comment: Joi.string().alphanum().min(0).max(150).required(),
     });
@@ -382,7 +387,7 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
         console.log("userId: " + user_id);
         console.log("pcitureUUID: " + picture_UUID);
         const schema = Joi.object({
-          user_id: Joi.number().integer().min(1).max(24).required(),
+          user_id: Joi.number().integer().min(1).required(),
         });
 
         const validationResult = schema.validate({ user_id });
@@ -422,7 +427,7 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
     console.log(picture_UUID)
     const schema = Joi.object(
       {
-        user_id: Joi.number().integer().min(1).max(24).required(),
+        user_id: Joi.number().integer().min(1).required(),
       });
     const validationResult = schema.validate({ user_id });
     if (validationResult.error != null) {
@@ -472,7 +477,7 @@ router.post("/checkbox", sessionValidation, async (req, res, next) => {
     console.log("checked?", checkbox)
 
     const schema = Joi.object({
-      user_id: Joi.number().integer().min(1).max(24).required(),
+      user_id: Joi.number().integer().min(1).required(),
     });
     const validationResult = schema.validate({
       user_id: user_id,
@@ -505,7 +510,7 @@ router.get("/sl", async (req, res) => {
     console.log("uuid ", uuid)
 
     const schema = Joi.object({
-      user_id: Joi.number().integer().min(1).max(24).required(),
+      user_id: Joi.number().integer().min(1).required(),
     });
     const validationResult = schema.validate({
       user_id,
@@ -544,7 +549,7 @@ router.get("/links", sessionValidation, async (req, res) => {
     console.log("user_id", user_id)
 
     const schema = Joi.object({
-      user_id: Joi.number().integer().min(1).max(24).required(),
+      user_id: Joi.number().integer().min(1).required(),
     });
     const validationResult = schema.validate({
       user_id,
@@ -578,7 +583,7 @@ router.post("/addURL", sessionValidation, async (req, res, next) => {
     console.log("user_id", user_id)
 
     const schema = Joi.object({
-      user_id: Joi.number().integer().min(1).max(24).required(),
+      user_id: Joi.number().integer().min(1).required(),
       url: Joi.string().uri().required()
     });
     const validationResult = schema.validate({
