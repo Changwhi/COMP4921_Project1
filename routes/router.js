@@ -8,7 +8,6 @@ const expireTime = 24 * 60 * 60 * 1000; // session expire time, persist for 1 ho
 
 const bcrypt = require("bcrypt");
 const saltRounds = 12;
-
 // mySQL
 const db_users = include('database/users');
 const db_text = include('database/textInsert');
@@ -483,6 +482,153 @@ router.get('/showTextForUser', async (req, res) => {
       res.render('showTextToPublic', { textContents: listOfTextResultForPublic, isLoggedIn: false})
     }
   }
+})
+
+router.post("/checkbox", sessionValidation, async (req, res, next) => {
+  try {
+    let user_id = req.session.userID;
+    let uuid = req.body.uuid;
+    let checkbox = req.body.check;
+
+    console.log("checkbox hit");
+    console.log("uuid", uuid)
+    console.log("checked?", checkbox)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+    });
+    const validationResult = schema.validate({
+      user_id: user_id,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid URL" });
+      return;
+    }
+
+    let responseData = await db_url.active({ active: checkbox, uuid: uuid })
+    if (!responseData) {
+      res.render('error', { message: `Failed to create the URL ` })
+    }
+
+    res.redirect(`/links`);
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+});
+
+router.get("/sl", async (req, res) => {
+  try {
+    let user_id = req.session.userID;
+    let uuid = req.query.id;
+    console.log("user_id", user_id)
+    console.log("uuid ", uuid)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+    });
+    const validationResult = schema.validate({
+      user_id,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid value in links route" });
+      return;
+    }
+    if (req.session.authenticated) {
+      var isLoggedIn = true;
+    } else {
+      var isLoggedIn = false;
+    }
+
+    let responseData = await db_url.getURL({ uuid: uuid })
+    if (!responseData || responseData[0][0].active !== 1) {
+      res.render("linksNotActive", { isLoggedIn: isLoggedIn });
+    } else {
+      console.log(responseData);
+      res.render("linksWait", { url: responseData[0][0].original_url, isLoggedIn: isLoggedIn });
+    }
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+
+});
+
+
+
+router.get("/links", sessionValidation, async (req, res) => {
+  try {
+    let user_id = req.session.userID;
+    console.log("user_id", user_id)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+    });
+    const validationResult = schema.validate({
+      user_id,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid value in links route" });
+      return;
+    }
+    let responseData = await db_url.getListOfURL({ user_id: user_id })
+    if (!responseData) {
+      res.render('error', { message: `Failed to retrieve the URL for:  ${req.body.pic_name}, `, title: "Loading URL failed" })
+    }
+    console.log(responseData[0])
+    res.render("links", { url: responseData[0] });
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+
+
+
+});
+
+router.post("/addURL", sessionValidation, async (req, res, next) => {
+  try {
+    let user_id = req.session.userID;
+    let url = req.body.url;
+    console.log("add URL page hit");
+    console.log("URL", url)
+    console.log("user_id", user_id)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+      url: Joi.string().uri().required()
+    });
+    const validationResult = schema.validate({
+      user_id: user_id,
+      url: url,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid URL" });
+      return;
+    }
+
+    let responseData = await db_url.addURL({ url: url, user_id: user_id })
+    if (!responseData) {
+      res.render('error', { message: `Failed to create the URL for:  ${req.body.pic_name}, `, title: "Adding URL column failed" })
+    }
+
+    res.redirect(`/links`);
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+});
+
+router.get('/showText', sessionValidation, (req, res) => {
+  res.render('textForm')
 })
 
 router.post('/submitText', async (req, res) => {

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<%- include("templates/header") %>
+
+  <body>
+    <section class="section">
+      <div class="maincolumns columns is-desktop is-vcentered">
+        <div class="column is-10 is-offset-1 notification is-info is-light box container">
+          <div class="column">
+            <h1 class="title is-1">Links</h1>
+          </div>
+
+          <div class="column">
+            <div class="columns is-centered">
+              <p>This link currently is not available.</p>
+            </div>
+            <div class="column is-centered">
+            </div>
+          </div>
+
+          <div class="column is-centered">
+            <form action="/" method="get">
+              <input type="hidden" name="user_id" value="<%= %>" />
+              <div class="field is-horizontal">
+
+                <div class="field-body">
+                  <div class="field">
+                    <button class="button is-link">
+                      <span>Go to DATABASE TEAM5 Website</span>
+                      <span class="icon is-small">
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+      </div>
+    </section>
+  </body>
+
+</html>
