@@ -113,64 +113,109 @@ router.get("/signup", async (req, res) => {
   var invalid = req.query.invalid === undefined ? true : req.query.invalid;
   res.render("signup", { invalid: invalid, isLoggedIn: false });
 
+});router.post("/loggingin", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  const user = await db_users.getUsers(); 
+
+  if (!user) {
+    res.render('login', { message: "Why did you enter the wrong email?!", isLoggedIn: false });
+    return;
+  }
+
+  const validationResult = passwordSchema.validate({ password });
+
+  if (validationResult.error) {
+    let errorMsg = validationResult.error.details[0].message;
+
+    if (errorMsg.includes("(?=.*[a-z])")) {
+      errorMsg = "Password must have at least 1 lowercase.";
+    } else if (errorMsg.includes("(?=.*[A-Z])")) {
+      errorMsg = "Password must have at least 1 uppercase.";
+    } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
+      errorMsg = "Password requires 1 special character.";
+    } else if (errorMsg.includes("(?=.*[0-9])")) {
+      errorMsg = "Password needs to have 1 number.";
+    } else {
+      errorMsg = "Invalid password format.";
+    }
+    res.render("login", { message: errorMsg, isLoggedIn: false });
+    return;
+  }
+
+  const isValidPassword = bcrypt.compareSync(password, user.hashed_password);
+
+  if (isValidPassword) {
+    req.session.userID = user.user_id;
+    req.session.authenticated = true;
+    req.session.email = email;
+    req.session.cookie.maxAge = expireTime; // Make sure expireTime is defined somewhere in your code.
+    res.render('index', { isLoggedIn: true }); 
+    return;
+  }
+
+  // Password incorrect.
+  req.session.authenticated = false;
+  res.redirect('/login');
 });
 
-router.post("/loggingin", async (req, res) => {
-  var email = req.body.email;
-  var password = req.body.password;
-  var users = await db_users.getUsers();
-  let user;
-  for (i = 0; i < users.length; i++) {
-    if (users[i].email == email) {
-      user = users[i];
-    }
-  }
-  if (user === undefined) {
-    res.render('login', { message: "Why did you enter the wrong email?!", isLoggedIn: false })
-  } else {
-    const validationResult = passwordSchema.validate({ password });
-    if (validationResult) {
-      for (i = 0; i < users.length; i++) {
-        const isValidPassword = bcrypt.compareSync(password, user.hashed_password)
-        if (user.email == email) {
-          if (isValidPassword) {
-            req.session.userID = user.user_id
-            console.log(user.user_id, "+in loggedin")
-            req.session.authenticated = true;
-            req.session.email = email;
-            req.session.cookie.maxAge = expireTime;
-            res.render('index', { isLoggedIn: isValidSession });
-            return
-          }
-          else if (!isValidPassword) {
-            req.session.authenticated = false;
-            res.redirect('/login');
-            return;
-          }
-        }
-      }
-      //User & PW combo not found.
-      res.render("login", { message: null, isLoggedIn: false });
-    } else {
-      let errorMsg = validationResult.error.details[0].message
-      if (errorMsg.includes("(?=.*[a-z])")) {
-        errorMsg = "Password must have at least 1 lowercase."
-      } else if (errorMsg.includes("(?=.*[A-Z])")) {
-        errorMsg = "Password must have at least 1 uppercase."
-      } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
-        errorMsg = "Password requires 1 special character."
-      } else if (errorMsg.includes("(?=.*[0-9])")) {
-        errorMsg = "Password needs to have 1 number."
-      } else {
-        errorMsg = null;
-      }
-      if (validationResult.error != null) {
-        res.render("login", { message: errorMsg, isLoggedIn: false });
-        return;
-      }
-    }
-  }
-});
+// router.post("/loggingin", async (req, res) => {
+//   var email = req.body.email;
+//   var password = req.body.password;
+//   var users = await db_users.getUsers();
+//   let user;
+//   for (i = 0; i < users.length; i++) {
+//     if (users[i].email == email) {
+//       user = users[i];
+//     }
+//   }
+//   if (user === undefined) {
+//     res.render('login', { message: "Why did you enter the wrong email?!", isLoggedIn: false })
+//   } else {
+//     const validationResult = passwordSchema.validate({ password });
+//     if (validationResult) {
+//       for (i = 0; i < users.length; i++) {
+//         const isValidPassword = bcrypt.compareSync(password, user.hashed_password)
+//         if (user.email == email) {
+//           if (isValidPassword) {
+//             req.session.userID = user.user_id
+//             console.log(user.user_id, "+in loggedin")
+//             req.session.authenticated = true;
+//             req.session.email = email;
+//             req.session.cookie.maxAge = expireTime;
+//             res.render('index', { isLoggedIn: isValidSession });
+//             return
+//           }
+//           else if (!isValidPassword) {
+//             req.session.authenticated = false;
+//             res.redirect('/login');
+//             return;
+//           }
+//         }
+//       }
+//       //User & PW combo not found.
+//       res.render("login", { message: null, isLoggedIn: false });
+//     } else {
+//       let errorMsg = validationResult.error.details[0].message
+//       if (errorMsg.includes("(?=.*[a-z])")) {
+//         errorMsg = "Password must have at least 1 lowercase."
+//       } else if (errorMsg.includes("(?=.*[A-Z])")) {
+//         errorMsg = "Password must have at least 1 uppercase."
+//       } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
+//         errorMsg = "Password requires 1 special character."
+//       } else if (errorMsg.includes("(?=.*[0-9])")) {
+//         errorMsg = "Password needs to have 1 number."
+//       } else {
+//         errorMsg = null;
+//       }
+//       if (validationResult.error != null) {
+//         res.render("login", { message: errorMsg, isLoggedIn: false });
+//         return;
+//       }
+//     }
+//   }
+// });
 //** CREATING THE USER SECTION */
 //** Render tempUserSignup which is /createUser originally, renamed for temp use. */
 //* Middleware for hashing password and pushing into mySQL DB*/
