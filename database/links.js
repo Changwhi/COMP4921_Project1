@@ -40,11 +40,24 @@ async function addURL(data) {
 async function getURL(data) {
   try {
     let insertImageSQL = `
-    SELECT original_url from links where short_url_uuid= ?`;
+    SELECT original_url, active from links where short_url_uuid= ?`;
     let params = [data.uuid]
     let responseData = await mySqlDatabase.query(insertImageSQL, params);
     console.log("Successfully retrieved column");
+
+    let hitSQL = `
+      UPDATE links
+      SET hits = hits + :hits, last_hit= DATE(NOW())
+      WHERE short_url_uuid= :short_url_uuid;
+      `
+    let params2 = {
+      hits: "+1",
+      short_url_uuid: data.uuid,
+    }
+    await mySqlDatabase.query(hitSQL, params2)
+
     return responseData;
+
   }
   catch (err) {
     console.log("Error retrieving column");
@@ -70,5 +83,31 @@ async function getListOfURL(data) {
 }
 
 
-module.exports = { addURL, getListOfURL, getURL }
+async function active(data) {
+  try {
+    let activeSQL = `
+      UPDATE links
+      SET active= :active
+      WHERE short_url_uuid= :short_url_uuid;
+      `
+    let params = {
+      active: data.active,
+      short_url_uuid: data.uuid,
+    }
+
+    console.log(data.active)
+    console.log(data.uuid)
+    await mySqlDatabase.query(activeSQL, params)
+    console.log("active");
+    return true;
+
+  }
+  catch (err) {
+    console.log("Error active");
+    console.log(err);
+    return false;
+  }
+}
+
+module.exports = { addURL, getListOfURL, getURL, active }
 

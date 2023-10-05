@@ -14,8 +14,8 @@
               <table class="table">
                 <thead>
                   <tr>
-                    <th>URL</th>
-                    <th>Short URL</th>
+                    <th style="max-width: 20px;">URL</th>
+                    <th style="max-width: 200px;">Short URL</th>
                     <th>Hits</th>
                     <th>Active</th>
                     <th>Created</th>
@@ -27,14 +27,15 @@
                     <% let i=0; %>
                       <% for(i=0; i < url.length; i++) { %>
                         <tr>
-                          <td>
-                            <a href="<%= url[i]['original_url'] %>">
+                          <td style="max-width: 200px; overflow: hidden;">
+                            <a style="white-space: wrap;" href="<%= url[i]['original_url'] %>">
                               <%= url[i]['original_url'] %>
                             </a>
                             <strong></strong>
                           </td>
-                          <td>
-                            <a href="/sl?id=<%= url[i]['short_url_uuid'] %>">http://localhost:3000/sl/?id=<%=
+                          <td style="max-width: 200px; overflow: visible;">
+                            <a style="white-space: wrap;"
+                              href="/sl?id=<%= url[i]['short_url_uuid'] %>">http://localhost:3000/sl/?id=<%=
                                 url[i]['short_url_uuid'] %></a>
                             <strong></strong>
                           </td>
@@ -44,15 +45,28 @@
 
                           <% if (url[i]["active"]===1) { %>
                             <td>
-                              <input type="checkbox" checked />
+
+                              <form id="myForm<%= i %>" action="/checkbox" method="post">
+                                <input checked type="checkbox" id="myCheckbox<%= i %>" name="myCheckbox" value="0">
+                                <input type="hidden" id="identifier<%= i %>" name="uuid"
+                                  value="<%= url[i]['short_url_uuid'] %>">
+                                <input type="hidden" id="identifier<%= i %>" name="check" value=0>
+                              </form>
                             </td>
+
 
                             <% } else { %>
                               <td>
-                                <input type="checkbox" />
+                                <form id="myForm<%= i %>" action="/checkbox" method="post">
+                                  <input type="checkbox" id="myCheckbox<%= i %>" name="myCheckbox" value="1">
+                                  <input type="hidden" id="identifier<%= i %>" name="uuid"
+                                    value="<%= url[i]['short_url_uuid'] %>">
+                                  <input type="hidden" id="identifier<%= i %>" name="check" value=1>
+                                </form>
                               </td>
 
                               <% } %>
+
                                 <td>
                                   <% const createdDate=new Date(url[i]['created']); %>
                                     <%= createdDate.getFullYear() %>/
@@ -61,7 +75,15 @@
                                 </td>
                                 </td>
                                 <td>
-                                  <%= url[i]['last_hit'] %>
+                                  <% const lastDate=url[i]['last_hit'] ? new Date(url[i]['last_hit']) : null; %>
+                                    <% if (lastDate) { %>
+                                      <%= lastDate.getFullYear() %>/
+                                        <%= (lastDate.getMonth() + 1).toString().padStart(2, '0' ) %>/
+                                          <%= lastDate.getDate().toString().padStart(2, '0' ) %>
+                                            <% } else { %>
+                                              <p>N/A</p>
+                                              &nbsp;
+                                              <% } %>
                                 </td>
                         </tr>
                         <% } %>
@@ -98,6 +120,18 @@
         </div>
       </div>
     </section>
+
+    <script>
+      const checkboxes = document.querySelectorAll("input[name='myCheckbox']");
+      checkboxes.forEach((checkbox, i) => {
+        checkbox.addEventListener("change", function () {
+          const form = document.getElementById("myForm" + i);
+          form.submit();
+        });
+      });
+    </script>
+
+
   </body>
 
 </html>

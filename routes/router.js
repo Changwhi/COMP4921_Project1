@@ -8,7 +8,6 @@ const expireTime = 24 * 60 * 60 * 1000; // session expire time, persist for 1 ho
 
 const bcrypt = require("bcrypt");
 const saltRounds = 12;
-
 // mySQL
 const db_users = include('database/users');
 const db_text = include('database/textInsert');
@@ -472,6 +471,40 @@ router.get('/showTextForUser', async (req, res) => {
   }
 })
 
+router.post("/checkbox", sessionValidation, async (req, res, next) => {
+  try {
+    let user_id = req.session.userID;
+    let uuid = req.body.uuid;
+    let checkbox = req.body.check;
+
+    console.log("checkbox hit");
+    console.log("uuid", uuid)
+    console.log("checked?", checkbox)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+    });
+    const validationResult = schema.validate({
+      user_id: user_id,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid URL" });
+      return;
+    }
+
+    let responseData = await db_url.active({ active: checkbox, uuid: uuid })
+    if (!responseData) {
+      res.render('error', { message: `Failed to create the URL ` })
+    }
+
+    res.redirect(`/links`);
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+});
 
 router.get("/sl", async (req, res) => {
   try {
@@ -498,11 +531,12 @@ router.get("/sl", async (req, res) => {
     }
 
     let responseData = await db_url.getURL({ uuid: uuid })
-    if (!responseData) {
-      res.render('error', { message: `Failed to retrieve the URL for:  ${req.body.pic_name}, `, title: "Loading URL failed" })
+    if (!responseData || responseData[0][0].active !== 1) {
+      res.render("linksNotActive", { isLoggedIn: isLoggedIn });
+    } else {
+      console.log(responseData);
+      res.render("linksWait", { url: responseData[0][0].original_url, isLoggedIn: isLoggedIn });
     }
-    console.log(responseData[0][0]['original_url'])
-    res.render('linksWait', { url: responseData[0][0]['original_url'], isLoggedIn: isLoggedIn })
   } catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
     console.log("Error connecting to MySQL");
