@@ -635,7 +635,12 @@ router.get('/:text_UUID', async (req, res) => {
   let selectedText;
   if (isLoggedIn) {
     let textContents = await db_text.getTextContent({ text_uuid: queryParamID });
-    res.render('createdText', { textContents: textContents, isLoggedIn: isLoggedIn })
+    for (i = 0; i < textContents.length; i++) {
+      if (textContents[i].text_UUID === queryParamID) {
+        selectedText = textContents[i];
+      }
+    }
+    res.render('createdText', { textContents: selectedText, isLoggedIn: isLoggedIn })
   } else {
     let textContentsForPublic = await db_text.getTextForPublic({ text_uuid: queryParamID })
     for (i = 0; i < textContentsForPublic.length; i++) {
