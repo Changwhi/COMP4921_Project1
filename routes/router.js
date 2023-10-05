@@ -110,7 +110,7 @@ router.get('/logout', (req, res) => {
 
 router.get("/signup", async (req, res) => {
   console.log(req.query.invalid)
-  var invalid = req.query.invalid === undefined ? true : req.query.invalid;
+  var invalid = req.query.invalid === undefined ? false : req.query.invalid;
   res.render("signup", { invalid: invalid, isLoggedIn: false });
 
 });
@@ -491,7 +491,7 @@ router.post('/submitText', async (req, res) => {
   let user_ID = req.session.userID;
   let textContent = req.body.text_content
   let text_UUID = generateShortUUID.ShortUUID()
-  let textSuccess = db_text.createText({user_ID: user_ID,  title: textTitle, content: textContent, textUUID: text_UUID })
+  let textSuccess = db_text.createText({ user_ID: user_ID, title: textTitle, content: textContent, textUUID: text_UUID })
   if (textSuccess) {
     res.redirect('/showTextForUser');
     return;
