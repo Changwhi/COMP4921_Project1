@@ -174,42 +174,40 @@ router.post("/loggingin", async (req, res) => {
 //** CREATING THE USER SECTION */
 //** Render tempUserSignup which is /createUser originally, renamed for temp use. */
 //* Middleware for hashing password and pushing into mySQL DB*/
-router.post("/submitUser", async (req, res) => {
+rrouter.post("/submitUser", async (req, res) => {
   var email = req.body.email;
   var password = req.body.password;
   var name = req.body.name;
   var hashedPassword = bcrypt.hashSync(password, saltRounds);
+  
   const validationResult = passwordSchema.validate({ password });
-  if (validationResult) {
+
+  if (validationResult.error) {
+    let errorMsg = validationResult.error.details[0].message;
+    
+    if (errorMsg.includes("(?=.*[a-z])")) {
+      errorMsg = "Password must have at least 1 lowercase.";
+    } else if (errorMsg.includes("(?=.*[A-Z])")) {
+      errorMsg = "Password must have at least 1 uppercase.";
+    } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
+      errorMsg = "Password requires 1 special character.";
+    } else if (errorMsg.includes("(?=.*[0-9])")) {
+      errorMsg = "Password needs to have 1 number.";
+    }
+    res.render("signup", { message: errorMsg, isLoggedIn: false });
+    return;
+  } else {
     var success = await db_users.createUser({ email: email, hashedPassword: hashedPassword, name: name });
 
     if (success) {
-      res.redirect('/login')
+      res.redirect('/login');
       return;
-    } else if (!success) {
-      res.render('error', { message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" })
+    } else {
+      res.render('error', { message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" });
     }
-  } else {
-    let errorMsg = validationResult.error.details[0].message  
-    if (errorMsg.includes("(?=.*[a-z])")) {
-      errorMsg = "Password must have at least 1 lowercase."
-    } else if (errorMsg.includes("(?=.*[A-Z])")) {
-      errorMsg = "Password must have at least 1 uppercase."
-    } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
-      errorMsg = "Password requires 1 special character."
-    } else if (errorMsg.includes("(?=.*[0-9])")) {
-      errorMsg = "Password needs to have 1 number."
-    }
-    if (validationResult.error != null) {
-      res.render("signup", { message: errorMsg, isLoggedIn: false });
-      return;
-    }
-    // if (!validationFunctions.validatePassword(password)) {
-    //   res.redirect('/signup?invalid=true')
-    //   return;
-    // }
   }
 });
+
 
 
 function isValidSession(req) {
