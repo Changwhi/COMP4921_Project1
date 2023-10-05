@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<%- include("templates/header") %>
+
+  <body>
+    <script type="text/javascript">
+      $.cloudinary.config({
+        cloud_name: "<%= process.env.CLOUDINARY_CLOUD_NAME %>",
+        secure: true,
+      });
+    </script>
+
+    <section class="section">
+      <div class="maincolumns columns is-desktop is-vcentered">
+        <div class="column is-10 is-offset-1 notification is-info is-light box container">
+          <div class="column">
+            <h1 class="title is-1">Images</h1>
+          </div>
+          <div class="column">
+            <div class="columns is-centered">
+              <% if (locals.allPics) { %>
+                <div class="table-container">
+                  <table class="table is-bordered is-hoverable is-striped is-fullwidth">
+                    <thead>
+                      <tr>
+                        <th>Picture Name</th>
+                        <th>Picture</th>
+                      </tr>
+                    </thead>
+                    <% let i=0; %>
+                      <% for(i=0; i < allPics.length; i++) { %>
+                        <tr>
+                          <td>
+                            <%= allPics[i]['name'] %>
+                          </td>
+                          <% if (allPics[i]['public_id']) { %>
+                            <td colspan="1">
+                              <script type="text/javascript">
+                                document.write(
+                                  $.cloudinary
+                                    .imageTag("<%- allPics[i]['public_id']%>", {
+                                      height: 100,
+                                      width: 100,
+                                      crop: "fit",
+                                    })
+                                    .toHtml()
+                                );
+                              </script>
+                              <% } else { %>
+                            </td>
+
+                            <td colspan="1">
+                              Picture does not exist
+                              <% } %>
+                            </td>
+                        </tr>
+                        <% } %>
+                  </table>
+                </div>
+                <% } %>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+
+</html>

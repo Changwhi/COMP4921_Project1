@@ -12,11 +12,11 @@ const saltRounds = 12;
 // mySQL
 const db_users = include('database/users');
 const db_text = include('database/textInsert');
-
+const db_url = include('database/links')
+const db_image = include('database/picture');
 
 // Short UUID generator in base 64.
 const generateShortUUID = include('routes/functions/ShortUUID')
-const db_image = include('database/picture');
 //
 //validation
 const validationFunctions = include('routes/functions/Validation');
@@ -155,7 +155,7 @@ router.post("/loggingin", async (req, res) => {
       }
       else if (!isValidPassword) {
         req.session.authenticated = false;
-        res.redirect('/login');
+        res.redirect('/login?login=false');
         return;
       }
     }
@@ -222,51 +222,43 @@ router.get("/pic", async (req, res) => {
   );
 });
 
-// router.post("/picUpload", upload.single("image"), function(req, res, next) {
-//   let buf64 = req.file.buffer.toString("base64");
-//   stream = cloudinary.uploader.upload(
-//     "data:image/png;base64," + buf64,
-//     function(result) {
-//       //_stream
-//       console.log(result);
-//       res.send(
-//         'Done:<br/> <img src="' +
-//         result.url +
-//         '"/><br/>' +
-//         cloudinary.image(result.public_id, {
-//           format: "png",
-//           width: 100,
-//           height: 130,
-//           crop: "fit",
-//         })
-//       );
-//     },
-//     { public_id: req.body.title }
-//   );
-//   console.log(req.body);
-//   console.log(req.file);
-// });
-//
-// function sleep(ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
-//
-router.get("/link", sessionValidation, async (req, res) => {
-  console.log("link page hit");
-  res.render("links");
-});
 
+router.get("/displayImage", async (req, res) => {
+  console.log("dispalyImage page");
+  try {
+    let user_id = req.session.userID;
+    let picture_UUID = req.query.uuid;
+    let responseData = await db_image.getImage({ picture_UUID: picture_UUID })
+    if (!responseData) {
+      res.render('error', { message: `Failed to retrieve columns, ` })
+    }
+    const picture = responseData[0].filter(pic => pic.picture_UUID === picture_UUID);
+    console.log("whats the picture", picture)
+    if (req.session.authenticated) {
+      var isLoggedIn = true;
+    } else {
+      var isLoggedIn = false;
+    }
+
+    res.render('displayImage', { allPics: picture, user_id: user_id, isLoggedIn: isLoggedIn });
+
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MongoDB" });
+    console.log("Error connecting to MongoDB");
+    console.log(ex);
+  }
+});
 
 router.get("/showPics", sessionValidation, async (req, res) => {
   console.log("picture page");
   try {
-    let user_id = "65024305f583fccec9aa2b99";
+    let user_id = req.session.userID;
     //req.query.id;
     console.log("userId: " + user_id);
 
     // Joi validate
     const schema = Joi.object({
-      user_id: Joi.string().alphanum().min(24).max(24).required(),
+      user_id: Joi.number().integer().min(1).max(24).required(),
     });
 
     const validationResult = schema.validate({ user_id });
@@ -276,21 +268,14 @@ router.get("/showPics", sessionValidation, async (req, res) => {
       res.render("error", { message: "Invalid user_id" });
       return;
     }
-    const pics = await userPicCollection
-      .find({ user_id: new ObjectId(user_id) })
-      .toArray();
-
-    if (pics === null) {
-      res.render("error", { message: "Error connecting to MongoDB" });
-      console.log("Error connecting to userModel");
-    } else {
-      pics.map((item) => {
-        item.pic_id = item._id;
-        return item;
-      });
-      console.log(pics);
-      res.render("images", { allPics: pics, user_id: user_id });
+    console.log("Retrieving column and ", req.session.userID)
+    let responseData = await db_image.getColumn({ user_id: user_id })
+    console.log("in show pices", responseData[0])
+    if (!responseData) {
+      res.render('error', { message: `Failed to retrieve columns, ` })
     }
+    res.render('images', { allPics: responseData[0], user_id: user_id });
+
   } catch (ex) {
     res.render("error", { message: "Error connecting to MongoDB" });
     console.log("Error connecting to MongoDB");
@@ -300,37 +285,31 @@ router.get("/showPics", sessionValidation, async (req, res) => {
 
 router.post("/addpic", sessionValidation, async (req, res) => {
   try {
-    console.log("form submit");
+    console.log("addpic form submit");
 
-    let user_id = req.body.user_id;
+    let user_id = req.session.userID;
 
     const schema = Joi.object({
-      user_id: Joi.string().alphanum().min(24).max(24).required(),
+      user_id: Joi.number().integer().min(1).max(24).required(),
       name: Joi.string().alphanum().min(2).max(50).required(),
-      comment: Joi.string().alphanum().min(2).max(150).required(),
+      comment: Joi.string().alphanum().min(0).max(150).required(),
     });
-
     const validationResult = schema.validate({
       user_id,
       name: req.body.pic_name,
       comment: req.body.comment,
     });
-
     if (validationResult.error != null) {
       console.log(validationResult.error);
-
       res.render("error", { message: "Invalid first_name, last_name, email" });
       return;
     }
 
-    await userPicCollection.insertOne({
-      name: req.body.pic_name,
-      user_id: new ObjectId(user_id),
-      comment: req.body.comment,
-    });
-
-
-
+    console.log("addColumn and ", req.session.userID)
+    let responseData = await db_image.addColumn({ name: req.body.pic_name, user_id: user_id, comment: req.body.comment })
+    if (!responseData) {
+      res.render('error', { message: `Failed to create the image contents for:  ${req.body.pic_name}, `, title: "Adding Picture column failed" })
+    }
     res.redirect(`/showPics?id=${user_id}`);
   } catch (ex) {
     res.render("error", { message: "Error connecting to MySQL" });
@@ -340,59 +319,42 @@ router.post("/addpic", sessionValidation, async (req, res) => {
 });
 
 router.post("/setUserPic", sessionValidation, upload.single("image"), function(req, res, next) {
-  let image_uuid = uuid();
-  let pic_id = req.body.pic_id;
-  let user_id = req.body.user_id;
+  let picture_UUID = req.body.pic_id;
+  let user_id = req.session.userID;
   let buf64 = req.file.buffer.toString("base64");
   stream = cloudinary.uploader.upload(
     "data:image/octet-stream;base64," + buf64,
     async function(result) {
       try {
-
         console.log("userId: " + user_id);
-
-        // Joi validate
+        console.log("pcitureUUID: " + picture_UUID);
         const schema = Joi.object({
-          pic_id: Joi.string().alphanum().min(24).max(24).required(),
-          user_id: Joi.string().alphanum().min(24).max(24).required(),
+          user_id: Joi.number().integer().min(1).max(24).required(),
         });
 
-        const validationResult = schema.validate({ pic_id, user_id });
+        const validationResult = schema.validate({ user_id });
         if (validationResult.error != null) {
           console.log(validationResult.error);
 
           res.render("error", { message: "Invalid pet_id or user_id" });
           return;
         }
-        const success = await userPicCollection.updateOne(
-          { _id: new ObjectId(pic_id) },
-          { $set: { image_id: image_uuid } },
-          {}
-        );
 
-        if (!success) {
-          res.render("error", {
-            message: "Error uploading pet image to MongoDB",
-          });
-          console.log("Error uploading pet image");
-        } else {
-
-          console.log("cloudinary link", result.url)
-          console.log("cloudinary link", req.session.userID)
-          let textSuccess = db_image.insertImage({ link: result.url, currentUser: req.session.userID })
-          if (!textSuccess) {
-            res.render('error', { message: `Failed to create the image contents for:  ${textTitle}, `, title: "Text creation failed" })
-          }
-
-          res.redirect(`/showPics?id=${user_id}`);
+        console.log("cloudinary link", result.url)
+        console.log("cloudinary link", result.public_id)
+        console.log("cloudinary link", req.session.userID)
+        let responseData = await db_image.insertImage({ link: result.url, public_id: result.public_id, picture_UUID: picture_UUID })
+        if (!responseData) {
+          res.render('error', { message: `Failed to create the image contents for` })
         }
+        res.redirect(`/showPics?id=${user_id}`);
+        // }
       } catch (ex) {
         res.render("error", { message: "Error connecting to MongoDB" });
         console.log("Error connecting to MongoDB");
         console.log(ex);
       }
     },
-    { public_id: image_uuid }
   );
   console.log(req.body);
   console.log(req.file);
@@ -400,44 +362,28 @@ router.post("/setUserPic", sessionValidation, upload.single("image"), function(r
 
 router.get('/deletePics', sessionValidation, async (req, res) => {
   try {
-    console.log("delete pet image");
-
-    let pet_id = req.query.id;
-    let user_id = req.query.user;
-    let is_user_pic = req.query.pic;
-    let pic_id = req.query.id;
-
+    console.log("delete image");
+    let user_id = req.session.userID;
+    let picture_UUID = req.query.picture_UUID;
+    console.log(picture_UUID)
     const schema = Joi.object(
       {
-        user_id: Joi.string().alphanum().min(24).max(24).required(),
-        pet_id: Joi.string().alphanum().min(24).max(24).required(),
+        user_id: Joi.number().integer().min(1).max(24).required(),
       });
-
-    const validationResult = schema.validate({ user_id, pet_id });
-
+    const validationResult = schema.validate({ user_id });
     if (validationResult.error != null) {
       console.log(validationResult.error);
-
-      res.render('error', { message: 'Invalid user_id or pet_id' });
+      res.render('error', { message: 'Invalid user_id ' });
       return;
     }
 
-    if (is_user_pic == 'true') {
-      console.log("pic_id: " + pet_id);
-      const success = await userPicCollection.updateOne({ "_id": new ObjectId(pic_id) },
-        { $set: { image_id: undefined } },
-        {}
-      );
-
-      console.log("delete User Image: ");
-      console.log(success);
-      if (!success) {
-        res.render('error', { message: 'Error connecting to MySQL' });
-        return;
-      }
-      res.redirect(`/showPics`);
-
+    console.log("delete User Image: ");
+    let responseData = await db_image.deleteImage({ picture_UUID: picture_UUID })
+    if (!responseData) {
+      res.render('error', { message: `Failed to delete the image` })
     }
+
+    res.redirect(`/showPics`);
   }
   catch (ex) {
     res.render('error', { message: 'Error connecting to MySQL' });
@@ -459,6 +405,115 @@ router.get('/showTextForUser', async (req, res) => {
       res.render('showTextToPublic', { textContents: listOfTextResultForPublic, isLoggedIn: false})
     }
   }
+router.get("/sl", async (req, res) => {
+  try {
+    let user_id = req.session.userID;
+    let uuid = req.query.id;
+    console.log("user_id", user_id)
+    console.log("uuid ", uuid)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+    });
+    const validationResult = schema.validate({
+      user_id,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid value in links route" });
+      return;
+    }
+    if (req.session.authenticated) {
+      var isLoggedIn = true;
+    } else {
+      var isLoggedIn = false;
+    }
+
+    let responseData = await db_url.getURL({ uuid: uuid })
+    if (!responseData) {
+      res.render('error', { message: `Failed to retrieve the URL for:  ${req.body.pic_name}, `, title: "Loading URL failed" })
+    }
+    console.log(responseData[0][0]['original_url'])
+    res.render('linksWait', { url: responseData[0][0]['original_url'], isLoggedIn: isLoggedIn })
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+
+});
+
+
+
+router.get("/links", sessionValidation, async (req, res) => {
+  try {
+    let user_id = req.session.userID;
+    console.log("user_id", user_id)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+    });
+    const validationResult = schema.validate({
+      user_id,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid value in links route" });
+      return;
+    }
+    let responseData = await db_url.getListOfURL({ user_id: user_id })
+    if (!responseData) {
+      res.render('error', { message: `Failed to retrieve the URL for:  ${req.body.pic_name}, `, title: "Loading URL failed" })
+    }
+    console.log(responseData[0])
+    res.render("links", { url: responseData[0] });
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+
+
+
+});
+
+router.post("/addURL", sessionValidation, async (req, res, next) => {
+  try {
+    let user_id = req.session.userID;
+    let url = req.body.url;
+    console.log("add URL page hit");
+    console.log("URL", url)
+    console.log("user_id", user_id)
+
+    const schema = Joi.object({
+      user_id: Joi.number().integer().min(1).max(24).required(),
+      url: Joi.string().uri().required()
+    });
+    const validationResult = schema.validate({
+      user_id: user_id,
+      url: url,
+    });
+    if (validationResult.error != null) {
+      console.log(validationResult.error);
+      res.render("error", { message: "Invalid URL" });
+      return;
+    }
+
+    let responseData = await db_url.addURL({ url: url, user_id: user_id })
+    if (!responseData) {
+      res.render('error', { message: `Failed to create the URL for:  ${req.body.pic_name}, `, title: "Adding URL column failed" })
+    }
+
+    res.redirect(`/links`);
+  } catch (ex) {
+    res.render("error", { message: "Error connecting to MySQL" });
+    console.log("Error connecting to MySQL");
+    console.log(ex);
+  }
+});
+
+router.get('/showText', sessionValidation, (req, res) => {
+  res.render('textForm')
 })
 
 router.post('/submitText', async (req, res) => {
