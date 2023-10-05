@@ -94,14 +94,14 @@ router.get("/", async (req, res) => {
 
 router.get("/login", async (req, res) => {
   const isLoggedIn = isValidSession(req)
-  res.render("login", { isLoggedIn: isLoggedIn });
+  res.render("login", { isLoggedIn: isLoggedIn, message: null });
 
 });
 
 router.get('/logout', (req, res) => {
   console.log("Logging out")
   req.session.destroy();
-  res.redirect('/login')
+  res.redirect('/login', {message: null})
   return;
 })
 
@@ -118,11 +118,24 @@ router.post("/loggingin", async (req, res) => {
   var password = req.body.password;
   var users = await db_users.getUsers();
   var user;
-  for (i = 0; i < users.length; i++) {
-    console.info(users[i].email);
+  for (i = 0; i < users.length; i++) {  
     if (users[i].email == email) {
       user = users[i];
     }
+  }
+  const passwordSchema = Joi.object({
+    password: Joi.string().alphanum().pattern(/(?=.*[a-z])/).pattern(/(?=.*[A-Z])/).min(12).max(50).required(),
+  });
+  const validationResult = passwordSchema.validate({ password });
+  let errorMsg = validationResult.error.details[0].message
+  if (errorMsg.includes("(?=.*[a-z])")) {
+    errorMsg = "Password must have at least 1 lowercase."
+  } else if (errorMsg.includes("(?=.*[A-Z])")) {
+    errorMsg = "Password must haveat least 1 uppercase."
+  }
+  if (validationResult.error != null) {
+    res.render("login", { message: errorMsg, isLoggedIn: false});
+    return;
   }
   for (i = 0; i < users.length; i++) {
     const isValidPassword = bcrypt.compareSync(password, user.hashed_password)
@@ -144,7 +157,7 @@ router.post("/loggingin", async (req, res) => {
     }
   }
   //User & PW combo not found.
-  res.render("login");
+  res.render("login", {message: null, isLoggedIn : false});
 });
 //** CREATING THE USER SECTION */
 //** Render tempUserSignup which is /createUser originally, renamed for temp use. */

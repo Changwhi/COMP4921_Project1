@@ -73,7 +73,7 @@ async function getTextForPublic(getData) {
 		const results = await mySqlDatabase.query(getTextSQLForPublic);
 
         console.log("Successfully retrieved public text data");
-		console.log(results[0]);
+		// console.log(results[0]);
 		return results[0];
 	}
 	catch(err) {
@@ -103,7 +103,7 @@ async function getTextContent(getData) {
 		const results = await mySqlDatabase.query(getTextContentSQL, params);
 
         console.log("Successfully retrieved text content data");
-		console.log(results[0]);
+		// console.log(results[0]);
 		return results[0];
 	}
 	catch(err) {
@@ -126,7 +126,7 @@ async function getTextContentForPublic(getData) {
 		const results = await mySqlDatabase.query(getTextContentForPublic, params);
 
         console.log("Successfully retrieved public text content data");
-		console.log(results[0]);
+		// console.log(results[0]);
 		return results[0];
 	}
 	catch(err) {
