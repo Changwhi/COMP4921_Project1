@@ -190,26 +190,25 @@ router.post("/submitUser", async (req, res) => {
       res.render('error', { message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" })
     }
   } else { 
-    
+    let errorMsg = validationResult.error.details[0].message
+    if (errorMsg.includes("(?=.*[a-z])")) {
+      errorMsg = "Password must have at least 1 lowercase."
+    } else if (errorMsg.includes("(?=.*[A-Z])")) {
+      errorMsg = "Password must have at least 1 uppercase."
+    } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
+      errorMsg = "Password requires 1 special character."
+    } else if (errorMsg.includes("(?=.*[0-9])")) {
+      errorMsg = "Password needs to have 1 number."
+    }
+    if (validationResult.error != null) {
+      res.render("signup", { message: errorMsg, isLoggedIn: false});
+      return;
+    }
+    // if (!validationFunctions.validatePassword(password)) {
+    //   res.redirect('/signup?invalid=true')
+    //   return;
+    // }
   }
-  let errorMsg = validationResult.error.details[0].message
-  if (errorMsg.includes("(?=.*[a-z])")) {
-    errorMsg = "Password must have at least 1 lowercase."
-  } else if (errorMsg.includes("(?=.*[A-Z])")) {
-    errorMsg = "Password must have at least 1 uppercase."
-  } else if (errorMsg.includes("(?=[!@#$%^&*])")) {
-    errorMsg = "Password requires 1 special character."
-  } else if (errorMsg.includes("(?=.*[0-9])")) {
-    errorMsg = "Password needs to have 1 number."
-  }
-  if (validationResult.error != null) {
-    res.render("signup", { message: errorMsg, isLoggedIn: false});
-    return;
-  }
-  // if (!validationFunctions.validatePassword(password)) {
-  //   res.redirect('/signup?invalid=true')
-  //   return;
-  // }
 });
 
 
