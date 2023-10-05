@@ -120,7 +120,7 @@ router.post("/loggingin", async (req, res) => {
   var password = req.body.password;
   var users = await db_users.getUsers();
   let user;
-  for (i = 0; i < users.length; i++) {  
+  for (i = 0; i < users.length; i++) {
     if (users[i].email == email) {
       user = users[i];
     }
@@ -140,7 +140,7 @@ router.post("/loggingin", async (req, res) => {
     errorMsg = "Password needs to have 1 number."
   }
   if (validationResult.error != null) {
-    res.render("login", { message: errorMsg, isLoggedIn: false});
+    res.render("login", { message: errorMsg, isLoggedIn: false });
     return;
   }
   for (i = 0; i < users.length; i++) {
@@ -163,10 +163,10 @@ router.post("/loggingin", async (req, res) => {
     }
   }
   //User & PW combo not found.
-  res.render("login", {message: null, isLoggedIn : false});
+  res.render("login", { message: null, isLoggedIn: false });
   if (user === undefined) {
-    res.render('login', {message: "Why did you enter the wrong email?!", isLoggedIn: false})
-  } else { 
+    res.render('login', { message: "Why did you enter the wrong email?!", isLoggedIn: false })
+  } else {
     const validationResult = passwordSchema.validate({ password });
     if (validationResult) {
       for (i = 0; i < users.length; i++) {
@@ -189,8 +189,8 @@ router.post("/loggingin", async (req, res) => {
         }
       }
       //User & PW combo not found.
-      res.render("login", {message: null, isLoggedIn : false});
-    } else { 
+      res.render("login", { message: null, isLoggedIn: false });
+    } else {
       let errorMsg = validationResult.error.details[0].message
       if (errorMsg.includes("(?=.*[a-z])")) {
         errorMsg = "Password must have at least 1 lowercase."
@@ -204,7 +204,7 @@ router.post("/loggingin", async (req, res) => {
         errorMsg = null;
       }
       if (validationResult.error != null) {
-        res.render("login", { message: errorMsg, isLoggedIn: false});
+        res.render("login", { message: errorMsg, isLoggedIn: false });
         return;
       }
     }
@@ -228,7 +228,7 @@ router.post("/submitUser", async (req, res) => {
     } else if (!success) {
       res.render('error', { message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" })
     }
-  } else { 
+  } else {
     let errorMsg = validationResult.error.details[0].message
     if (errorMsg.includes("(?=.*[a-z])")) {
       errorMsg = "Password must have at least 1 lowercase."
@@ -240,7 +240,7 @@ router.post("/submitUser", async (req, res) => {
       errorMsg = "Password needs to have 1 number."
     }
     if (validationResult.error != null) {
-      res.render("signup", { message: errorMsg, isLoggedIn: false});
+      res.render("signup", { message: errorMsg, isLoggedIn: false });
       return;
     }
   }
@@ -457,18 +457,22 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
 });
 
 
+
 router.get('/showTextForUser', async (req, res) => {
   const isLoggedIn = isValidSession(req)
   if (isLoggedIn) {
     let user_ID = req.session.userID;
-    let listOfTextResult = await db_text.getText({user_ID: user_ID});
+    let listOfTextResult = await db_text.getText({ user_ID: user_ID });
     res.render('textForm', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
-  } else { 
+  } else {
     let listOfTextResultForPublic = await db_text.getTextForPublic();
     if (listOfTextResultForPublic) {
-      res.render('showTextToPublic', { textContents: listOfTextResultForPublic, isLoggedIn: false})
+      res.render('showTextToPublic', { textContents: listOfTextResultForPublic, isLoggedIn: false })
     }
   }
+})
+
+
 router.get("/sl", async (req, res) => {
   try {
     let user_id = req.session.userID;
@@ -595,31 +599,31 @@ router.post('/submitText', async (req, res) => {
 })
 
 router.get('/:text_UUID', async (req, res) => {
-  const isLoggedIn = isValidSession(req) 
+  const isLoggedIn = isValidSession(req)
   let queryParamID = req.params.text_UUID;
   let selectedText;
-  if (isLoggedIn) { 
-    let textContents = await db_text.getTextContent({text_uuid: queryParamID});
-    res.render('createdText', {textContents: textContents, isLoggedIn: isLoggedIn})
+  if (isLoggedIn) {
+    let textContents = await db_text.getTextContent({ text_uuid: queryParamID });
+    res.render('createdText', { textContents: textContents, isLoggedIn: isLoggedIn })
   } else {
-    let textContentsForPublic = await db_text.getTextForPublic({text_uuid: queryParamID})
-    for (i= 0; i < textContentsForPublic.length; i++ ) {
-      if (textContentsForPublic[i].text_UUID === queryParamID){
-          selectedText = textContentsForPublic[i];
+    let textContentsForPublic = await db_text.getTextForPublic({ text_uuid: queryParamID })
+    for (i = 0; i < textContentsForPublic.length; i++) {
+      if (textContentsForPublic[i].text_UUID === queryParamID) {
+        selectedText = textContentsForPublic[i];
       }
     }
-    res.render('createdTextForPublic', {textContents: selectedText, isLoggedIn: false})
+    res.render('createdTextForPublic', { textContents: selectedText, isLoggedIn: false })
   }
 })
 
-router.post('/editText', async (req, res) => { 
-  const isLoggedIn = isValidSession(req) 
+router.post('/editText', async (req, res) => {
+  const isLoggedIn = isValidSession(req)
   let editedTextContent = req.body.new_text_content;
   let text_UUID = req.body.text_uuid;
-  let textUpdateSuccess = await db_text.updateText({editedTextContent: editedTextContent, textUUID: text_UUID})
+  let textUpdateSuccess = await db_text.updateText({ editedTextContent: editedTextContent, textUUID: text_UUID })
   if (textUpdateSuccess) {
-    let textContents = await db_text.getTextContent({text_uuid: text_UUID});
-    res.render('createdText' ,{textContents: textContents, isLoggedIn: isLoggedIn})
+    let textContents = await db_text.getTextContent({ text_uuid: text_UUID });
+    res.render('createdText', { textContents: textContents, isLoggedIn: isLoggedIn })
   } else if (!textUpdateSuccess) {
     res.render('error', { message: `Failed to update the text contents for:  ${textTitle}, `, title: "Text update failed" })
   }
