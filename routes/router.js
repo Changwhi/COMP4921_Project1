@@ -174,7 +174,7 @@ router.post("/loggingin", async (req, res) => {
 //** CREATING THE USER SECTION */
 //** Render tempUserSignup which is /createUser originally, renamed for temp use. */
 //* Middleware for hashing password and pushing into mySQL DB*/
-rrouter.post("/submitUser", async (req, res) => {
+router.post("/submitUser", async (req, res) => {
   var email = req.body.email;
   var password = req.body.password;
   var name = req.body.name;
