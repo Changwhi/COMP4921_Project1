@@ -640,6 +640,7 @@ router.get('/:text_UUID', async (req, res) => {
         selectedText = textContents[i];
       }
     }
+    console.log("Created Text??")
     res.render('createdText', { textContents: selectedText, isLoggedIn: isLoggedIn })
   } else {
     let textContentsForPublic = await db_text.getTextForPublic({ text_uuid: queryParamID })
