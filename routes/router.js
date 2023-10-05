@@ -190,7 +190,7 @@ router.post("/submitUser", async (req, res) => {
       res.render('error', { message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" })
     }
   } else {
-    let errorMsg = validationResult.error.details[0].message
+    let errorMsg = validationResult.error.details[0].message  
     if (errorMsg.includes("(?=.*[a-z])")) {
       errorMsg = "Password must have at least 1 lowercase."
     } else if (errorMsg.includes("(?=.*[A-Z])")) {
