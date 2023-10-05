@@ -87,18 +87,24 @@ function setLoginStatus(req, res, next) {
 router.get("/", async (req, res) => {
   console.log("index page hit");
   const isLoggedIn = isValidSession(req)
-  console.log(isLoggedIn)
   res.render("index", { isLoggedIn: isLoggedIn });
 });
 
 
 
 router.get("/login", async (req, res) => {
-  console.log("index page hit");
   const isLoggedIn = isValidSession(req)
-  res.render("login", { isLoggedIn: isLoggedIn });
+  res.render("login", { isLoggedIn: isLoggedIn, message: null });
 
 });
+
+router.get('/logout', (req, res) => {
+  console.log("Logging out")
+  req.session.destroy();
+  res.redirect('/login', {message: null})
+  return;
+})
+
 router.get("/signup", async (req, res) => {
   console.log("index page hit");
   console.log(req.query.invalid)
@@ -112,11 +118,28 @@ router.post("/loggingin", async (req, res) => {
   var password = req.body.password;
   var users = await db_users.getUsers();
   var user;
-  for (i = 0; i < users.length; i++) {
-    console.info(users[i].email);
+  for (i = 0; i < users.length; i++) {  
     if (users[i].email == email) {
       user = users[i];
     }
+  }
+  const passwordSchema = Joi.object({
+    password: Joi.string().alphanum().pattern(/(?=.*[a-z])/).pattern(/(?=.*[A-Z])/).pattern(/[!@#$%^&*]/).pattern(/[0-9]/).min(12).max(50).required(),
+  });
+  const validationResult = passwordSchema.validate({ password });
+  let errorMsg = validationResult.error.details[0].message
+  if (errorMsg.includes("(?=.*[a-z])")) {
+    errorMsg = "Password must have at least 1 lowercase."
+  } else if (errorMsg.includes("(?=.*[A-Z])")) {
+    errorMsg = "Password must have at least 1 uppercase."
+  } else if (errorMsg.includes("[!@#$%^&*]")) {
+    errorMsg = "Password requires 1 special character."
+  } else if (errorMsg.includes("[0-9]")) {
+    errorMsg = "Password needs to have 1 number."
+  }
+  if (validationResult.error != null) {
+    res.render("login", { message: errorMsg, isLoggedIn: false});
+    return;
   }
   for (i = 0; i < users.length; i++) {
     const isValidPassword = bcrypt.compareSync(password, user.hashed_password)
@@ -138,7 +161,7 @@ router.post("/loggingin", async (req, res) => {
     }
   }
   //User & PW combo not found.
-  res.render("login");
+  res.render("login", {message: null, isLoggedIn : false});
 });
 //** CREATING THE USER SECTION */
 //** Render tempUserSignup which is /createUser originally, renamed for temp use. */
@@ -152,12 +175,13 @@ router.post("/submitUser", async (req, res) => {
   console.log(password, "Password???")
   if (!validationFunctions.validatePassword(password)) {
     res.redirect('/signup?invalid=true')
-    return
+    return;
   }
   var success = await db_users.createUser({ email: email, hashedPassword: hashedPassword, name: name });
 
   if (success) {
     res.redirect('/login')
+    return;
   } else if (!success) {
     res.render('error', { message: `Failed to create the user ${email}, ${name}`, title: "User creation failed" })
   }
@@ -423,8 +447,18 @@ router.get('/deletePics', sessionValidation, async (req, res) => {
 });
 
 
-router.get('/showText', sessionValidation, (req, res) => {
-  res.render('textForm')
+router.get('/showTextForUser', async (req, res) => {
+  const isLoggedIn = isValidSession(req)
+  if (isLoggedIn) {
+    let user_ID = req.session.userID;
+    let listOfTextResult = await db_text.getText({user_ID: user_ID});
+    res.render('textForm', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
+  } else { 
+    let listOfTextResultForPublic = await db_text.getTextForPublic();
+    if (listOfTextResultForPublic) {
+      res.render('showTextToPublic', { textContents: listOfTextResultForPublic, isLoggedIn: false})
+    }
+  }
 })
 
 router.post('/submitText', async (req, res) => {
@@ -434,24 +468,45 @@ router.post('/submitText', async (req, res) => {
   let text_UUID = generateShortUUID.ShortUUID()
   let textSuccess = db_text.createText({ user_ID: user_ID, title: textTitle, content: textContent, textUUID: text_UUID })
   if (textSuccess) {
-    res.redirect('/displayText');
+    res.redirect('/showTextForUser');
+    return;
   } else if (!textSuccess) {
     res.render('error', { message: `Failed to create the text contents for:  ${textTitle}, `, title: "Text creation failed" })
   }
 })
 
-router.get('/displayText', async (req, res) => {
-  const isLoggedIn = isValidSession(req)
-  console.log(req.session.userID)
-  let user_ID = req.session.userID;
-  let listOfTextResult = await db_text.getText({ user_ID: user_ID });
-  res.render('createdtext', { listOfText: listOfTextResult, isLoggedIn: isLoggedIn })
+router.get('/:text_UUID', async (req, res) => {
+  const isLoggedIn = isValidSession(req) 
+  let queryParamID = req.params.text_UUID;
+  let selectedText;
+  if (isLoggedIn) { 
+    let textContents = await db_text.getTextContent({text_uuid: queryParamID});
+    res.render('createdText', {textContents: textContents, isLoggedIn: isLoggedIn})
+  } else {
+    let textContentsForPublic = await db_text.getTextForPublic({text_uuid: queryParamID})
+    for (i= 0; i < textContentsForPublic.length; i++ ) {
+      if (textContentsForPublic[i].text_UUID === queryParamID){
+          selectedText = textContentsForPublic[i];
+      }
+    }
+    res.render('createdTextForPublic', {textContents: selectedText, isLoggedIn: false})
+  }
 })
 
+router.post('/editText', async (req, res) => { 
+  const isLoggedIn = isValidSession(req) 
+  let editedTextContent = req.body.new_text_content;
+  let text_UUID = req.body.text_uuid;
+  let textUpdateSuccess = await db_text.updateText({editedTextContent: editedTextContent, textUUID: text_UUID})
+  if (textUpdateSuccess) {
+    let textContents = await db_text.getTextContent({text_uuid: text_UUID});
+    res.render('createdText' ,{textContents: textContents, isLoggedIn: isLoggedIn})
+  } else if (!textUpdateSuccess) {
+    res.render('error', { message: `Failed to update the text contents for:  ${textTitle}, `, title: "Text update failed" })
+  }
+});
 
-router.get('/logout', (req, res) => {
-  res.redirect('/login')
-})
+
 
 router.get('*', (req, res) => {
   res.status(404).render('error', { message: "404 No such page found." })

@@ -19,7 +19,7 @@ async function createUser(postData) {
 		const results = await mySqlDatabase.query(createUserSQL, params);
 
         console.log("Successfully created user");
-		console.log(results[0]);
+		// console.log(results[0]);
 		return true;
 	}
 	catch(err) {
@@ -39,7 +39,7 @@ async function getUsers() {
 		const results = await mySqlDatabase.query(getUsersSQL);
 
         console.log("Successfully retrieved users");
-		console.log(results[0]);
+		// console.log(results[0]);
 		return results[0];
 	}
 	catch(err) {

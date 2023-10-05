@@ -5,7 +5,7 @@
     <section class="section">
       <div class="maincolumns columns is-desktop is-vcentered">
         <div
-          class="column is-10 is-offset-1 notification is-info is-light box container"
+          class="column is-9 is-offset-1 notification is-info is-light box container"
         >
         <form action="/submitText" method="post">
           <div class="column">
@@ -18,11 +18,37 @@
             <input class="input is-small" style="width:fit-content" name="text_title" type="text" placeholder="Text name">
           </div>
           <div class="column">
-            <textarea class="textarea" name="text_content" placeholder="Paste something!" rows="10"></textarea>
+            <textarea class="textarea" name="text_content" placeholder="Paste something!" rows="10" cols="0"></textarea>
             <br>
             <button class="button is-success">Create a new text</button>
           </div>
         </form>
+        <div class="column">
+          <h3 class="title is-6">My Text/Pastes</h3>
+        </div>
+        <div class="column">
+        <section>
+          <% if (locals.listOfText) { %>
+              <table>
+                  <% let i=0 %>
+                      <tr>
+                          <th style="padding-right: 50px;">Text/Paste Title</th>
+                          <th>Shareable URL</th>
+                      </tr>
+                      <% for(i; i < listOfText.length; i++){ %>
+                          <tr>
+                              <td>
+                                  <a href="/<%=listOfText[i].text_UUID %>"><%= listOfText[i].text_title %></a>
+                              </td>
+                              <td>
+                                <a href="/<%=listOfText[i].text_UUID %>">http://localhost:3000/<%= listOfText[i].text_UUID %></a>
+                            </td>
+                          </tr>
+                          <% } %>
+              </table>
+              <% } %>
+          </section>
+        </div>
           </div>
         </div>
       </div>
