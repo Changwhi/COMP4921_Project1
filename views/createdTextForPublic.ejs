@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<%- include("templates/header") %>
+    <body>
+        <% if (locals.textContents) { %>
+        <section class="section">
+            <div class="maincolumns columns is-desktop is-vcentered">
+              <div class="column is-10 is-offset-1 notification is-light container" style="border-radius: 25px;">
+              <form action="/editText" method="post">
+                <div class="column">
+                      <h1 class="title is-1"> <%= textContents.text_title %></h1>
+                </div>
+                <div class="column">Text/Paste: <%= textContents.text_UUID %> 
+                <input type='hidden' name="text_uuid" value="<%= textContents.text_UUID %>"/>
+                </div>
+                <div class="column">
+                  <textarea readonly class="textarea" name="new_text_content" rows="10" cols="0"><%= textContents.text_content %></textarea>
+                  <br>
+                </div>
+              </form>
+        </section>
+        <% } %>
+    </body>
+</html>

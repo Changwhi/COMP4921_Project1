@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<%- include("templates/header") %>
+
+<body>
+    <div class="maincolumns columns is-desktop is-vcentered">
+        <div class="column is-10 is-offset-1 notification is-light is-info container" style="border-radius: 25px;">
+            <div class="column">
+                <h3 class="title is-6">Public Text/Pastes</h3>
+              </div>
+              <div class="column">
+            <section>
+                <% if (locals.textContents) { %>
+                <table>
+                    <% let i=0 %>
+                    <tr>
+                        <th style="padding-right: 50px;">Text/Paste Title</th>
+                        <th>Shareable URL</th>
+                    </tr>
+                    <% for(i; i < textContents.length; i++){ %>
+                    <tr>
+                        <td>
+                            <a href="/<%=textContents[i].text_UUID %>"><%= textContents[i].text_title %></a>
+                        </td>
+                        <td style="max-width: 200px; overflow: hidden; padding-right: 10px">
+                            <a style="white-space: wrap;" href="/<%=textContents[i].text_UUID %>">http://gktaujsqxf.us19.qoddiapp.com/<%= textContents[i].text_UUID %></a>
+                        </td>
+                        <td style="padding-bottom: 5px;">
+                            <button class="button is-dark" data-link="http://gktaujsqxf.us19.qoddiapp.com/<%= textContents[i].text_UUID %>" onclick="copyToClipboard(this)">Copy Link</button>
+                        </td>
+                    </tr>
+                    <% } %>
+                </table>
+                <% } %>
+            </section>
+        </div>
+        </div>
+    </div>
+    <script>
+        function copyToClipboard(element) {
+            const link = element.getAttribute('data-link');
+            navigator.clipboard.writeText(link)
+        }
+    </script>
+</body>
+
+</html>

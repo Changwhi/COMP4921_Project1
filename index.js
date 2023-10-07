@@ -1,13 +1,29 @@
-const express = require ('express');
+//Define the include global function for absolute file name,
+//removing the use of parent directories.
+//when using include() vs require to help with module imports.
+global.base_dir = __dirname;
+global.abs_path = function(path) {
+	return base_dir + path;
+}
+global.include = function(file) {
+	return require(abs_path('/' + file));
+}
+
+require('dotenv').config();
+const express = require('express');
+const router = include('routes/router');
+
 
 const port = process.env.PORT || 3000;
 
 const app = express();
+app.set('view engine', 'ejs');
 
-app.get('/', (req, res) => {
-    res.send("<h1>Hello word <!h1>");
-});
+app.use(express.urlencoded({extended: false}));
+app.use(express.static(__dirname + "/public"));
+app.use('/',router);
 
 app.listen(port, () => {
-    console.log("Node app listening on Port"+port)
+	console.log("Node application listening on port: "+ port);
 });
+
